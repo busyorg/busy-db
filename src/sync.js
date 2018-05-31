@@ -4,6 +4,7 @@ const os = require("os");
 const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
+const { sleep } = require("./utils");
 
 const BASE_DIR = path.resolve(os.homedir(), ".busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -53,6 +54,8 @@ async function syncOnline(head) {
       await fs.writeFile(path.resolve(BASE_DIR, "head"), i);
     } catch (err) {
       console.log(err);
+      await sleep(2000);
+      i--;
     }
   }
 }

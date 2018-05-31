@@ -1,0 +1,7 @@
+const Promise = require("bluebird");
+
+function sleep(delay) {
+  return new Promise(resolve => setTimeout(resolve, delay));
+}
+
+module.exports = { sleep };
