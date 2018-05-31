@@ -1,6 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
+const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
 
@@ -18,9 +19,7 @@ async function getBatch(batch) {
     .reduce((a, b) => [...a, ...b], []);
 }
 
-function processBatch() {
-  console.log("processing batch");
-}
+function processBatch() {}
 
 async function syncOffline(head) {
   for (let i = 0; i <= head; i++) {
@@ -30,16 +29,20 @@ async function syncOffline(head) {
     );
     processBatch(resp);
   }
-  console.log("done");
+
+  console.log(chalk.green("Offline sync completed"));
 }
 
 async function syncOnline(head) {
   const batches = getBatches(1, 22910707);
 
-  const startBatch = head ? parseInt(head) + 1 : 0;
+  const startBatch = head ? head + 1 : 0;
 
   for (let i = startBatch; i < batches.length; i++) {
     try {
+      if (i % 10 === 0) {
+        console.log(chalk.blue(`Processing batch: ${i}`));
+      }
       const resp = await getBatch(batches[i]);
       processBatch(resp);
 
@@ -57,7 +60,11 @@ async function syncOnline(head) {
 module.exports = async function sync(offline) {
   await fs.ensureDir(CACHE_DIR);
   await fs.ensureFile(path.resolve(CACHE_DIR, "head"));
-  const head = await fs.readFile(path.resolve(BASE_DIR, "head"), "utf8");
+  const head = parseInt(
+    await fs.readFile(path.resolve(BASE_DIR, "head"), "utf8")
+  );
+
+  console.log(chalk.yellow(`Current head is: ${chalk.bold(head)}`));
 
   if (offline) {
     syncOffline(head);
