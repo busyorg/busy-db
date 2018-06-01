@@ -14,13 +14,13 @@ async function addUser(timestamp, username) {
 
 async function addPost(timestamp, author, permlink, title, body) {
   const oldPost = await db.oneOrNone(
-    "SELECT id, body FROM posts WHERE author=$1 AND permlink=$2",
+    "SELECT id, title, body FROM posts WHERE author=$1 AND permlink=$2",
     [author, permlink]
   );
 
   if (!oldPost) {
     await db.none(
-      "INSERT INTO posts(created_at, updated_at, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
+      "INSERT INTO posts(created_at, updated_at, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5)",
       [timestamp, author, permlink, title, body]
     );
 
@@ -40,11 +40,12 @@ async function addPost(timestamp, author, permlink, title, body) {
 
     const newBody = isPatch ? dmp.patch_apply(patch, oldPost.body)[0] : body;
 
-    await db.none("UPDATE posts SET updated_at=$1, body=$2 WHERE id=$3", [
-      timestamp,
-      newBody,
-      oldPost.id
-    ]);
+    if (oldPost.title === title && oldPost.body === newBody) return;
+
+    await db.none(
+      "UPDATE posts SET updated_at=$1, title=$2, body=$3 WHERE id=$4",
+      [timestamp, title, newBody, oldPost.id]
+    );
   }
 }
 
