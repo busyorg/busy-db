@@ -21,8 +21,7 @@ async function getBatch(batch) {
     .reduce((a, b) => [...a, ...b], []);
 }
 
-async function processBatch(resp) {
-  const txs = JSON.parse(resp);
+async function processBatch(txs) {
   for (let tx of txs) {
     const [type, payload] = tx.op;
     const { timestamp } = tx;
@@ -56,7 +55,7 @@ async function syncOffline(head) {
       path.resolve(CACHE_DIR, `${i}.batch`),
       "utf8"
     );
-    await processBatch(resp);
+    await processBatch(JSON.parse(resp));
   }
 
   console.log(chalk.green("Offline sync completed"));
