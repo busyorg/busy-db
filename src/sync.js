@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
 const { sleep } = require("./utils");
-const { addUser, addPost } = require("./db");
+const { addUser, addPost, votePost } = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), ".busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -44,6 +44,15 @@ async function processBatch(txs) {
           payload.permlink,
           payload.title,
           payload.body
+        );
+        break;
+      case "vote":
+        await votePost(
+          timestamp,
+          payload.voter,
+          payload.author,
+          payload.permlink,
+          payload.weight
         );
     }
   }

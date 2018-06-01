@@ -49,7 +49,39 @@ async function addPost(timestamp, author, permlink, title, body) {
   }
 }
 
+async function votePost(timestamp, voter, author, permlink, weight) {
+  const post = await db.oneOrNone(
+    "SELECT id FROM posts WHERE author=$1 AND permlink=$2",
+    [author, permlink]
+  );
+
+  if (!post) return;
+
+  const oldVote = await db.oneOrNone(
+    "SELECT id, weight FROM votes WHERE post_id=$1",
+    [post.id]
+  );
+
+  if (!oldVote) {
+    await db.none(
+      "INSERT INTO votes(created_at, updated_at, post_id, voter, weight) VALUES ($1, $1, $2, $3, $4)",
+      [timestamp, post.id, voter, weight]
+    );
+
+    return;
+  }
+
+  if (oldVote.weight === weight) return;
+
+  await db.none("UPDATE votes SET updated_at=$1, weight=$2 WHERE id=$3", [
+    timestamp,
+    weight,
+    oldVote.id
+  ]);
+}
+
 module.exports = {
   addUser,
-  addPost
+  addPost,
+  votePost
 };

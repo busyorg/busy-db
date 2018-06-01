@@ -1,5 +1,4 @@
 CREATE TABLE accounts (
-  id SERIAL,
   created_at TIMESTAMP,
   name VARCHAR(60) UNIQUE
 );
@@ -13,6 +12,16 @@ CREATE TABLE posts (
   title VARCHAR(255),
   body TEXT,
   CONSTRAINT uc_post UNIQUE (author, permlink)
+);
+
+CREATE TABLE votes (
+  id SERIAL,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  post_id DECIMAL NOT NULL,
+  voter VARCHAR(32) NOT NULL,
+  weight SMALLINT DEFAULT 0,
+  CONSTRAINT uc_vote UNIQUE (post_id, voter)
 );
 
 CREATE TABLE communities (
