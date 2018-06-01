@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
 const { sleep } = require("./utils");
-const { addUser } = require("./db");
+const { addUser, addPost } = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), ".busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -37,6 +37,15 @@ async function processBatch(resp) {
       case "new_account_name":
       case "account_create_with_delegation":
         await addUser(timestamp, payload.new_account_name);
+        break;
+      case "comment":
+        await addPost(
+          timestamp,
+          payload.author,
+          payload.permlink,
+          payload.title,
+          payload.body
+        );
     }
   }
 }

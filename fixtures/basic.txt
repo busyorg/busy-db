@@ -8,8 +8,19 @@
 
 CREATE TABLE accounts (
   id SERIAL,
-  name VARCHAR(60) UNIQUE,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP,
+  name VARCHAR(60) UNIQUE
+);
+
+CREATE TABLE posts (
+  id SERIAL,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  author VARCHAR(32),
+  permlink VARCHAR(255),
+  title VARCHAR(255),
+  body TEXT,
+  CONSTRAINT uc_post UNIQUE (author, permlink)
 );
 
 CREATE TABLE communities (
@@ -30,18 +41,6 @@ CREATE TABLE members (
   is_approved BOOLEAN,
   is_muted BOOLEAN,
   title VARCHAR(100)
-);
-
-CREATE TABLE posts (
-  id SERIAL,
-  parent_id DECIMAL,
-  author VARCHAR(32),
-  permlink VARCHAR(100),
-  community_id DECIMAL,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP,
-  is_pinned BOOLEAN,
-  is_muted BOOLEAN
 );
 
 CREATE TABLE flags (
