@@ -8,7 +8,8 @@
 
 CREATE TABLE accounts (
   id SERIAL,
-  name VARCHAR(60) UNIQUE
+  name VARCHAR(60) UNIQUE,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE communities (

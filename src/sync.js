@@ -25,17 +25,18 @@ async function processBatch(resp) {
   const txs = JSON.parse(resp);
   for (let tx of txs) {
     const [type, payload] = tx.op;
+    const { timestamp } = tx;
 
     switch (type) {
       case "pow":
-        await addUser(payload.worker_account);
+        await addUser(timestamp, payload.worker_account);
         break;
       case "pow2":
-        await addUser(payload.work.value.input.worker_account);
+        await addUser(timestamp, payload.work.value.input.worker_account);
         break;
       case "new_account_name":
       case "account_create_with_delegation":
-        await addUser(payload.new_account_name);
+        await addUser(timestamp, payload.new_account_name);
     }
   }
 }
