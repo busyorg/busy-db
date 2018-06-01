@@ -5,6 +5,7 @@ const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
 const { sleep } = require("./utils");
+const { addUser } = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), ".busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -20,7 +21,24 @@ async function getBatch(batch) {
     .reduce((a, b) => [...a, ...b], []);
 }
 
-function processBatch() {}
+async function processBatch(resp) {
+  const txs = JSON.parse(resp);
+  for (let tx of txs) {
+    const [type, payload] = tx.op;
+
+    switch (type) {
+      case "pow":
+        await addUser(payload.worker_account);
+        break;
+      case "pow2":
+        await addUser(payload.work.value.input.worker_account);
+        break;
+      case "new_account_name":
+      case "account_create_with_delegation":
+        await addUser(payload.new_account_name);
+    }
+  }
+}
 
 async function syncOffline(head) {
   for (let i = 0; i <= head; i++) {
@@ -28,7 +46,7 @@ async function syncOffline(head) {
       path.resolve(CACHE_DIR, `${i}.batch`),
       "utf8"
     );
-    processBatch(resp);
+    await processBatch(resp);
   }
 
   console.log(chalk.green("Offline sync completed"));
@@ -45,7 +63,7 @@ async function syncOnline(head) {
         console.log(chalk.blue(`Processing batch: ${i}`));
       }
       const resp = await getBatch(batches[i]);
-      processBatch(resp);
+      await processBatch(resp);
 
       await fs.writeFile(
         path.resolve(CACHE_DIR, `${i}.batch`),
