@@ -1,4 +1,5 @@
 CREATE TABLE accounts (
+  id SERIAL,
   created_at TIMESTAMP,
   name VARCHAR(60) UNIQUE
 );
@@ -7,6 +8,7 @@ CREATE TABLE posts (
   id SERIAL,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
+  parent_post_id DECIMAL,
   author VARCHAR(32),
   permlink VARCHAR(255),
   title VARCHAR(255),

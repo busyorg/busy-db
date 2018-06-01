@@ -40,6 +40,8 @@ async function processBatch(txs) {
       case "comment":
         await addPost(
           timestamp,
+          payload.parent_author,
+          payload.parent_permlink,
           payload.author,
           payload.permlink,
           payload.title,
