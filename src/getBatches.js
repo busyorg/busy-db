@@ -1,3 +1,5 @@
+const HF_BLOCKS = [2889020];
+
 function getBatches(startBlock, blockCount) {
   const batches = [];
 
@@ -6,7 +8,7 @@ function getBatches(startBlock, blockCount) {
     batch.push(startBlock + i);
 
     if (batch.length === 50 || i === blockCount - 1) {
-      batches.push(batch);
+      batches.push(batch.filter(block => !HF_BLOCKS.includes(block)));
       batch = [];
     }
   }
