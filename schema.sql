@@ -1,14 +1,13 @@
 CREATE TABLE accounts (
-  id SERIAL,
   created_at TIMESTAMP,
   name VARCHAR(60) UNIQUE
 );
 
 CREATE TABLE posts (
-  id SERIAL,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  parent_post_id DECIMAL,
+  parent_author VARCHAR(32),
+  parent_permlink VARCHAR(255),
   author VARCHAR(32),
   permlink VARCHAR(255),
   title VARCHAR(255),
@@ -17,13 +16,13 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE votes (
-  id SERIAL,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  post_id DECIMAL NOT NULL,
+  post_author VARCHAR(32),
+  post_permlink VARCHAR(255),
   voter VARCHAR(32) NOT NULL,
   weight SMALLINT DEFAULT 0,
-  CONSTRAINT uc_vote UNIQUE (post_id, voter)
+  CONSTRAINT uc_vote UNIQUE (post_author, post_permlink, voter)
 );
 
 CREATE TABLE communities (

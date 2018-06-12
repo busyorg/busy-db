@@ -22,21 +22,17 @@ async function addPost(
   body
 ) {
   const oldPost = await db.oneOrNone(
-    "SELECT id, title, body FROM posts WHERE author=$1 AND permlink=$2",
+    "SELECT title, body FROM posts WHERE author=$1 AND permlink=$2",
     [author, permlink]
   );
 
   if (!oldPost) {
-    const parentPost = await db.oneOrNone(
-      "SELECT id FROM posts WHERE author=$1 AND permlink=$2",
-      [parentAuthor, parentPermlink]
-    );
-
     await db.none(
-      "INSERT INTO posts(created_at, updated_at, parent_post_id, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      "INSERT INTO posts(created_at, updated_at, parent_author, parent_permlink, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6, $7)",
       [
         timestamp,
-        parentPost ? parentPost.id : null,
+        parentAuthor,
+        parentPermlink,
         author,
         permlink,
         title,
@@ -63,29 +59,22 @@ async function addPost(
     if (oldPost.title === title && oldPost.body === newBody) return;
 
     await db.none(
-      "UPDATE posts SET updated_at=$1, title=$2, body=$3 WHERE id=$4",
-      [timestamp, title, newBody, oldPost.id]
+      "UPDATE posts SET updated_at=$1, title=$2, body=$3 WHERE author=$4 AND permlink=$5",
+      [timestamp, title, newBody, author, permlink]
     );
   }
 }
 
 async function votePost(timestamp, voter, author, permlink, weight) {
-  const post = await db.oneOrNone(
-    "SELECT id FROM posts WHERE author=$1 AND permlink=$2",
-    [author, permlink]
-  );
-
-  if (!post) return;
-
   const oldVote = await db.oneOrNone(
-    "SELECT id, weight FROM votes WHERE post_id=$1",
-    [post.id]
+    "SELECT weight FROM votes WHERE post_author=$1 AND post_permlink=$2",
+    [author, permlink]
   );
 
   if (!oldVote) {
     await db.none(
-      "INSERT INTO votes(created_at, updated_at, post_id, voter, weight) VALUES ($1, $1, $2, $3, $4)",
-      [timestamp, post.id, voter, weight]
+      "INSERT INTO votes(created_at, updated_at, post_author, post_permlink, voter, weight) VALUES ($1, $1, $2, $3, $4, $5)",
+      [timestamp, author, permlink, voter, weight]
     );
 
     return;
@@ -93,10 +82,11 @@ async function votePost(timestamp, voter, author, permlink, weight) {
 
   if (oldVote.weight === weight) return;
 
-  await db.none("UPDATE votes SET updated_at=$1, weight=$2 WHERE id=$3", [
+  await db.none("UPDATE votes SET updated_at=$1, weight=$2 WHERE post_author=$3 AND post_permlink=$4", [
     timestamp,
     weight,
-    oldVote.id
+    author,
+    permlink
   ]);
 }
 
