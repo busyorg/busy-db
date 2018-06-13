@@ -57,6 +57,13 @@ async function addPost(
   }
 }
 
+async function deletePost(timestamp, author, permlink) {
+  await db.none("DELETE FROM posts WHERE author=$1 and permlink=$2", [
+    author,
+    permlink
+  ]);
+}
+
 async function votePost(timestamp, voter, author, permlink, weight) {
   const oldVote = await db.oneOrNone(
     "SELECT weight FROM votes WHERE post_author=$1 AND post_permlink=$2",
@@ -97,6 +104,7 @@ async function removeFollow(timestamp, follower, followed) {
 module.exports = {
   addUser,
   addPost,
+  deletePost,
   votePost,
   addFollow,
   removeFollow
