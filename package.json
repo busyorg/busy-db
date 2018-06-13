@@ -12,9 +12,14 @@
     "pg-promise": "^8.4.4",
     "yargs": "^11.0.0"
   },
+  "scripts": {
+    "lint": "eslint src/**/*.js",
+    "prettier": "prettier src/**/*.js --list-different"
+  },
   "devDependencies": {
     "babel-eslint": "^8.2.3",
     "eslint": "^4.19.1",
-    "eslint-config-prettier": "^2.9.0"
+    "eslint-config-prettier": "^2.9.0",
+    "prettier": "^1.13.5"
   }
 }
