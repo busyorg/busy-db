@@ -29,15 +29,7 @@ async function addPost(
   if (!oldPost) {
     await db.none(
       "INSERT INTO posts(created_at, updated_at, parent_author, parent_permlink, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6, $7)",
-      [
-        timestamp,
-        parentAuthor,
-        parentPermlink,
-        author,
-        permlink,
-        title,
-        body
-      ]
+      [timestamp, parentAuthor, parentPermlink, author, permlink, title, body]
     );
 
     return;
@@ -82,16 +74,30 @@ async function votePost(timestamp, voter, author, permlink, weight) {
 
   if (oldVote.weight === weight) return;
 
-  await db.none("UPDATE votes SET updated_at=$1, weight=$2 WHERE post_author=$3 AND post_permlink=$4", [
-    timestamp,
-    weight,
-    author,
-    permlink
+  await db.none(
+    "UPDATE votes SET updated_at=$1, weight=$2 WHERE post_author=$3 AND post_permlink=$4",
+    [timestamp, weight, author, permlink]
+  );
+}
+
+async function addFollow(timestamp, follower, followed) {
+  await db.none(
+    "INSERT INTO follows (created_at, updated_at, follower, followed) VALUES ($1, $1, $2, $3) ON CONFLICT DO NOTHING",
+    [timestamp, follower, followed]
+  );
+}
+
+async function removeFollow(timestamp, follower, followed) {
+  await db.none("DELETE FROM follows WHERE follower=$1 and followed=$2", [
+    follower,
+    followed
   ]);
 }
 
 module.exports = {
   addUser,
   addPost,
-  votePost
+  votePost,
+  addFollow,
+  removeFollow
 };
