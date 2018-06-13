@@ -65,7 +65,7 @@ async function processBatch(txs) {
         );
         break;
       case "delete_comment":
-        deletePost(timestamp, payload.author, payload.permlink);
+        await deletePost(timestamp, payload.author, payload.permlink);
         break;
       case "custom_json":
         if (payload.id === "follow") {
