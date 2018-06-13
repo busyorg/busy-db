@@ -3,7 +3,7 @@ const pgp = require("pg-promise")();
 
 const dmp = new DiffMatchPatch();
 
-const db = pgp("postgres://localhost:5432/busydb");
+const db = pgp(process.env.BUSYDB_URI || "postgres://localhost:5432/busydb");
 
 async function addUser(timestamp, username) {
   await db.none(
