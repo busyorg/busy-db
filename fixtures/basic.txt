@@ -1,7 +1,0 @@
-[
-    ["create", {
-    "community": "sekhmet", 
-    "type": "public",
-    "admins": ["sekhmet"]
-    }],
-]
