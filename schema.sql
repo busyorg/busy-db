@@ -25,6 +25,14 @@ CREATE TABLE votes (
   CONSTRAINT uc_vote UNIQUE (post_author, post_permlink, voter)
 );
 
+CREATE TABLE follows (
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  follower VARCHAR(32),
+  followed VARCHAR(32),
+  CONSTRAINT uc_follow UNIQUE (follower, followed)
+);
+
 CREATE TABLE communities (
   account_id DECIMAL NOT NULL,
   type SMALLINT,

@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
 const { sleep } = require("./utils");
-const { addUser, addPost, votePost } = require("./db");
+const { addUser, addPost, votePost, addFollow, removeFollow } = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), ".busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -56,6 +56,16 @@ async function processBatch(txs) {
           payload.permlink,
           payload.weight
         );
+        break;
+      case "custom_json":
+        if (payload.id === "follow") {
+          const { follower, following, what } = JSON.parse(payload.json);
+          if (what.includes("blog")) {
+            await addFollow(timestamp, follower, following);
+          } else if (what.includes("ignore") || what.length === 0) {
+            await removeFollow(timestamp, follower, following);
+          }
+        }
     }
   }
 }
