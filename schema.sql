@@ -1,6 +1,13 @@
 CREATE TABLE accounts (
   created_at TIMESTAMP,
-  name VARCHAR(60) UNIQUE
+  updated_at TIMESTAMP,
+  name VARCHAR(60) UNIQUE,
+  profile_name VARCHAR(60),
+  profile_about VARCHAR(160),
+  profile_location VARCHAR(32),
+  profile_website VARCHAR(100),
+  profile_avatar VARCHAR(100),
+  profile_cover VARCHAR(100)
 );
 
 CREATE TABLE posts (

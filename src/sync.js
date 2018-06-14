@@ -7,6 +7,7 @@ const getBatches = require("./getBatches");
 const { sleep } = require("./utils");
 const {
   addUser,
+  updateProfile,
   addPost,
   deletePost,
   votePost,
@@ -43,6 +44,13 @@ async function processBatch(txs) {
       case "new_account_name":
       case "account_create_with_delegation":
         await addUser(timestamp, payload.new_account_name);
+        break;
+      case "profile_update":
+        updateProfile(
+          timestamp,
+          payload.account,
+          JSON.parse(payload.json_metadata || "{}").profile
+        );
         break;
       case "comment":
         await addPost(
@@ -82,6 +90,10 @@ async function processBatch(txs) {
 
 async function syncOffline(head) {
   for (let i = 0; i <= head; i++) {
+    if (i % 10 === 0) {
+      console.log(chalk.blue(`Processing batch: ${i}`));
+    }
+
     const resp = await fs.readFile(
       path.resolve(CACHE_DIR, `${i}.batch`),
       "utf8"
