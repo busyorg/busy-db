@@ -60,7 +60,7 @@ async function addPost(
 async function deletePost(timestamp, author, permlink) {
   await db.none('DELETE FROM posts WHERE author=$1 and permlink=$2', [
     author,
-    permlink
+    permlink,
   ]);
 }
 
@@ -97,7 +97,7 @@ async function addFollow(timestamp, follower, followed) {
 async function removeFollow(timestamp, follower, followed) {
   await db.none('DELETE FROM follows WHERE follower=$1 and followed=$2', [
     follower,
-    followed
+    followed,
   ]);
 }
 
@@ -107,5 +107,5 @@ module.exports = {
   deletePost,
   votePost,
   addFollow,
-  removeFollow
+  removeFollow,
 };

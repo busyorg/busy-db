@@ -11,7 +11,7 @@ const {
   deletePost,
   votePost,
   addFollow,
-  removeFollow
+  removeFollow,
 } = require('./db');
 
 const BASE_DIR = path.resolve(os.homedir(), '.busydb');
@@ -20,7 +20,7 @@ const CACHE_DIR = path.resolve(BASE_DIR, 'cache');
 async function getBatch(batch) {
   const requests = batch.map(block => ({
     method: 'get_ops_in_block',
-    params: [block]
+    params: [block],
   }));
 
   return await api
