@@ -65,25 +65,9 @@ async function deletePost(timestamp, author, permlink) {
 }
 
 async function addVote(timestamp, voter, author, permlink, weight) {
-  const oldVote = await db.oneOrNone(
-    "SELECT weight FROM votes WHERE post_author=$1 AND post_permlink=$2",
-    [author, permlink]
-  );
-
-  if (!oldVote) {
-    await db.none(
-      "INSERT INTO votes(created_at, updated_at, post_author, post_permlink, voter, weight) VALUES ($1, $1, $2, $3, $4, $5)",
-      [timestamp, author, permlink, voter, weight]
-    );
-
-    return;
-  }
-
-  if (oldVote.weight === weight) return;
-
   await db.none(
-    "UPDATE votes SET updated_at=$1, weight=$2 WHERE post_author=$3 AND post_permlink=$4",
-    [timestamp, weight, author, permlink]
+    "INSERT INTO votes(created_at, updated_at, post_author, post_permlink, voter, weight) VALUES ($1, $1, $2, $3, $4, $5) ON CONFLICT ON CONSTRAINT uc_vote DO UPDATE SET weight=$5",
+    [timestamp, author, permlink, voter, weight]
   );
 }
 
