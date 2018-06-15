@@ -94,6 +94,10 @@ async function processBatch(txs) {
 
 async function syncOffline(head) {
   for (let i = 0; i <= head; i++) {
+    if (i % 10 === 0) {
+      console.log(chalk.blue(`Processing batch: ${i}`));
+    }
+
     const resp = await fs.readFile(
       path.resolve(CACHE_DIR, `${i}.batch`),
       "utf8"
