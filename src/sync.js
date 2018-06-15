@@ -1,26 +1,26 @@
-const Promise = require('bluebird');
-const fs = require('fs-extra');
-const path = require('path');
-const os = require('os');
-const chalk = require('chalk');
-const api = require('./api');
-const getBatches = require('./getBatches');
+const Promise = require("bluebird");
+const fs = require("fs-extra");
+const path = require("path");
+const os = require("os");
+const chalk = require("chalk");
+const api = require("./api");
+const getBatches = require("./getBatches");
 const {
   addUser,
   addPost,
   deletePost,
   addVote,
   addFollow,
-  removeFollow,
-} = require('./db');
+  removeFollow
+} = require("./db");
 
-const BASE_DIR = path.resolve(os.homedir(), 'busydb');
-const CACHE_DIR = path.resolve(BASE_DIR, 'cache');
+const BASE_DIR = path.resolve(os.homedir(), "busydb");
+const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 
 async function getBatch(batch) {
   const requests = batch.map(block => ({
-    method: 'get_ops_in_block',
-    params: [block],
+    method: "get_ops_in_block",
+    params: [block]
   }));
 
   return await api
@@ -34,17 +34,17 @@ async function processBatch(txs) {
     const { timestamp } = tx;
 
     switch (type) {
-      case 'pow':
+      case "pow":
         await addUser(timestamp, payload.worker_account);
         break;
-      case 'pow2':
+      case "pow2":
         await addUser(timestamp, payload.work[1].input.worker_account);
         break;
-      case 'new_account_name':
-      case 'account_create_with_delegation':
+      case "new_account_name":
+      case "account_create_with_delegation":
         await addUser(timestamp, payload.new_account_name);
         break;
-      case 'comment':
+      case "comment":
         await addPost(
           timestamp,
           payload.parent_author,
@@ -55,7 +55,7 @@ async function processBatch(txs) {
           payload.body
         );
         break;
-      case 'vote':
+      case "vote":
         await addVote(
           timestamp,
           payload.voter,
@@ -64,15 +64,15 @@ async function processBatch(txs) {
           payload.weight
         );
         break;
-      case 'delete_comment':
+      case "delete_comment":
         await deletePost(timestamp, payload.author, payload.permlink);
         break;
-      case 'custom_json':
-        if (payload.id === 'follow') {
+      case "custom_json":
+        if (payload.id === "follow") {
           const { follower, following, what } = JSON.parse(payload.json);
-          if (what.includes('blog')) {
+          if (what.includes("blog")) {
             await addFollow(timestamp, follower, following);
-          } else if (what.includes('ignore') || what.length === 0) {
+          } else if (what.includes("ignore") || what.length === 0) {
             await removeFollow(timestamp, follower, following);
           }
         }
@@ -84,12 +84,12 @@ async function syncOffline(head) {
   for (let i = 0; i <= head; i++) {
     const resp = await fs.readFile(
       path.resolve(CACHE_DIR, `${i}.batch`),
-      'utf8'
+      "utf8"
     );
     await processBatch(JSON.parse(resp));
   }
 
-  console.log(chalk.green('Offline sync completed'));
+  console.log(chalk.green("Offline sync completed"));
 }
 
 async function syncOnline(head) {
@@ -109,7 +109,7 @@ async function syncOnline(head) {
         path.resolve(CACHE_DIR, `${i}.batch`),
         JSON.stringify(resp)
       );
-      await fs.writeFile(path.resolve(BASE_DIR, 'head'), i);
+      await fs.writeFile(path.resolve(BASE_DIR, "head"), i);
     } catch (err) {
       console.log(err);
       await Promise.delay(2000);
@@ -120,9 +120,9 @@ async function syncOnline(head) {
 
 module.exports = async function sync(offline) {
   await fs.ensureDir(CACHE_DIR);
-  await fs.ensureFile(path.resolve(BASE_DIR, 'head'));
+  await fs.ensureFile(path.resolve(BASE_DIR, "head"));
   const head = parseInt(
-    await fs.readFile(path.resolve(BASE_DIR, 'head'), 'utf8')
+    await fs.readFile(path.resolve(BASE_DIR, "head"), "utf8")
   );
 
   console.log(chalk.yellow(`Current head is: ${chalk.bold(head)}`));
