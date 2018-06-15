@@ -64,7 +64,7 @@ async function deletePost(timestamp, author, permlink) {
   ]);
 }
 
-async function votePost(timestamp, voter, author, permlink, weight) {
+async function addVote(timestamp, voter, author, permlink, weight) {
   const oldVote = await db.oneOrNone(
     'SELECT weight FROM votes WHERE post_author=$1 AND post_permlink=$2',
     [author, permlink]
@@ -105,7 +105,7 @@ module.exports = {
   addUser,
   addPost,
   deletePost,
-  votePost,
+  addVote,
   addFollow,
   removeFollow,
 };

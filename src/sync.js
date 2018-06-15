@@ -9,7 +9,7 @@ const {
   addUser,
   addPost,
   deletePost,
-  votePost,
+  addVote,
   addFollow,
   removeFollow,
 } = require('./db');
@@ -56,7 +56,7 @@ async function processBatch(txs) {
         );
         break;
       case 'vote':
-        await votePost(
+        await addVote(
           timestamp,
           payload.voter,
           payload.author,
