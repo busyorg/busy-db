@@ -13,6 +13,7 @@
     "yargs": "^11.0.0"
   },
   "scripts": {
+    "start": "node src/index.js sync",
     "lint": "eslint src/**/*.js",
     "prettier": "prettier src/**/*.js --list-different"
   },
@@ -20,6 +21,7 @@
     "babel-eslint": "^8.2.3",
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-prettier": "^2.6.0",
     "prettier": "^1.13.5"
   }
 }

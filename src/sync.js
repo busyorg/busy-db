@@ -1,20 +1,20 @@
+const Promise = require("bluebird");
 const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
 const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
-const { sleep } = require("./utils");
 const {
   addUser,
   addPost,
   deletePost,
-  votePost,
+  addVote,
   addFollow,
   removeFollow
 } = require("./db");
 
-const BASE_DIR = path.resolve(os.homedir(), ".busydb");
+const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 
 async function getBatch(batch) {
@@ -56,7 +56,7 @@ async function processBatch(txs) {
         );
         break;
       case "vote":
-        await votePost(
+        await addVote(
           timestamp,
           payload.voter,
           payload.author,
@@ -112,7 +112,7 @@ async function syncOnline(head) {
       await fs.writeFile(path.resolve(BASE_DIR, "head"), i);
     } catch (err) {
       console.log(err);
-      await sleep(2000);
+      await Promise.delay(2000);
       i--;
     }
   }
@@ -120,7 +120,7 @@ async function syncOnline(head) {
 
 module.exports = async function sync(offline) {
   await fs.ensureDir(CACHE_DIR);
-  await fs.ensureFile(path.resolve(CACHE_DIR, "head"));
+  await fs.ensureFile(path.resolve(BASE_DIR, "head"));
   const head = parseInt(
     await fs.readFile(path.resolve(BASE_DIR, "head"), "utf8")
   );
