@@ -41,6 +41,7 @@ async function processBatch(txs) {
         await addUser(timestamp, payload.work[1].input.worker_account);
         break;
       case "new_account_name":
+      case "account_create":
       case "account_create_with_delegation":
         await addUser(timestamp, payload.new_account_name);
         break;
