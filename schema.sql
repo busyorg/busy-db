@@ -6,13 +6,24 @@ CREATE TABLE accounts (
 CREATE TABLE posts (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  parent_author VARCHAR(32),
   parent_permlink VARCHAR(255),
   author VARCHAR(32),
   permlink VARCHAR(255),
   title VARCHAR(255),
   body TEXT,
   CONSTRAINT uc_post UNIQUE (author, permlink)
+);
+
+CREATE TABLE comments (
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  parent_author VARCHAR(32),
+  parent_permlink VARCHAR(255),
+  author VARCHAR(32),
+  permlink VARCHAR(255),
+  title VARCHAR(255),
+  body TEXT,
+  CONSTRAINT uc_comment UNIQUE (author, permlink)
 );
 
 CREATE TABLE votes (
