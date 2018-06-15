@@ -8,6 +8,7 @@ const getBatches = require("./getBatches");
 const {
   addUser,
   addPost,
+  addComment,
   deletePost,
   addVote,
   addFollow,
@@ -45,15 +46,26 @@ async function processBatch(txs) {
         await addUser(timestamp, payload.new_account_name);
         break;
       case "comment":
-        await addPost(
-          timestamp,
-          payload.parent_author,
-          payload.parent_permlink,
-          payload.author,
-          payload.permlink,
-          payload.title,
-          payload.body
-        );
+        if (!payload.parent_author) {
+          await addPost(
+            timestamp,
+            payload.parent_permlink,
+            payload.author,
+            payload.permlink,
+            payload.title,
+            payload.body
+          );
+        } else {
+          await addComment(
+            timestamp,
+            payload.parent_author,
+            payload.parent_permlink,
+            payload.author,
+            payload.permlink,
+            payload.title,
+            payload.body
+          );
+        }
         break;
       case "vote":
         await addVote(
