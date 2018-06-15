@@ -1,3 +1,10 @@
+.DS_Store
+package-lock.json
+
+# Remove some common IDE working directories
+.idea
+.vscode
+
 # Logs
 logs
 *.log
@@ -65,6 +72,3 @@ typings/
 
 # Serverless directories
 .serverless
-
-# WebStorm
-.idea
