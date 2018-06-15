@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-const sync = require("./sync");
+const sync = require('./sync');
 
-require("yargs").command(
-  "sync",
-  "start syncing process",
+require('yargs').command(
+  'sync',
+  'start syncing process',
   yargs => {
-    yargs.option("offline", {
-      alias: "o",
-      default: false
+    yargs.option('offline', {
+      alias: 'o',
+      default: false,
     });
   },
   argv => {
