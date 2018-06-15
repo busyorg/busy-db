@@ -155,7 +155,9 @@ async function syncOnline(head) {
 module.exports = async function sync(offline) {
   await fs.ensureDir(CACHE_DIR);
   await fs.ensureFile(path.resolve(BASE_DIR, "head"));
-  const head = 80000;
+  const head = parseInt(
+    await fs.readFile(path.resolve(BASE_DIR, "head"), "utf8")
+  );
 
   console.log(chalk.yellow(`Current head is: ${chalk.bold(head)}`));
 
