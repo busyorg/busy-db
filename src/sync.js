@@ -12,6 +12,7 @@ const {
   addVote,
   addFollow,
   removeFollow,
+  addReblog,
   addProducerReward,
   addAuthorReward,
   addCurationReward
@@ -80,6 +81,14 @@ async function processBatch(txs) {
                 json[1].follower,
                 json[1].following,
                 json[1].what
+              );
+              break;
+            case "reblog":
+              await addReblog(
+                timestamp,
+                json[1].account,
+                json[1].author,
+                json[1].permlink
               );
               break;
             default:
