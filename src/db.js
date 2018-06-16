@@ -43,18 +43,17 @@ async function addComment(
   parentPermlink,
   author,
   permlink,
-  title,
   body
 ) {
   const oldComment = await db.oneOrNone(
-    "SELECT title, body FROM comments WHERE author=$1 AND permlink=$2",
+    "SELECT body FROM comments WHERE author=$1 AND permlink=$2",
     [author, permlink]
   );
 
   if (!oldComment) {
     await db.none(
-      "INSERT INTO comments (created_at, updated_at, parent_author, parent_permlink, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6, $7)",
-      [timestamp, parentAuthor, parentPermlink, author, permlink, title, body]
+      "INSERT INTO comments (created_at, updated_at, parent_author, parent_permlink, author, permlink, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      [timestamp, parentAuthor, parentPermlink, author, permlink, body]
     );
 
     return;
@@ -63,11 +62,11 @@ async function addComment(
   if (oldComment) {
     const newBody = getNewBody(oldComment.body, body);
 
-    if (oldComment.title === title && oldComment.body === newBody) return;
+    if (oldComment.body === newBody) return;
 
     await db.none(
-      "UPDATE comments SET updated_at=$1, title=$2, body=$3 WHERE author=$4 AND permlink=$5",
-      [timestamp, title, newBody, author, permlink]
+      "UPDATE comments SET updated_at=$1, body=$3 WHERE author=$4 AND permlink=$5",
+      [timestamp, newBody, author, permlink]
     );
   }
 }

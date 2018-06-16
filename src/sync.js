@@ -65,7 +65,6 @@ async function processBatch(txs) {
             payload.parent_permlink,
             payload.author,
             payload.permlink,
-            payload.title,
             payload.body
           );
         }
