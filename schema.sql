@@ -6,7 +6,7 @@ CREATE TABLE accounts (
 CREATE TABLE posts (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  parent_permlink VARCHAR(255),
+  category VARCHAR(255),
   author VARCHAR(16),
   permlink VARCHAR(255),
   title VARCHAR(255),

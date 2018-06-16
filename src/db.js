@@ -10,14 +10,7 @@ async function addUser(timestamp, username) {
   );
 }
 
-async function addPost(
-  timestamp,
-  parentPermlink,
-  author,
-  permlink,
-  title,
-  body
-) {
+async function addPost(timestamp, category, author, permlink, title, body) {
   const oldPost = await db.oneOrNone(
     "SELECT title, body FROM posts WHERE author=$1 AND permlink=$2",
     [author, permlink]
@@ -25,8 +18,8 @@ async function addPost(
 
   if (!oldPost) {
     await db.none(
-      "INSERT INTO posts (created_at, updated_at, parent_permlink, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
-      [timestamp, parentPermlink, author, permlink, title, body]
+      "INSERT INTO posts (created_at, updated_at, category, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      [timestamp, category, author, permlink, title, body]
     );
 
     return;
