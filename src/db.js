@@ -107,6 +107,47 @@ async function removeFollow(timestamp, follower, followed) {
   ]);
 }
 
+async function addProducerReward(timestamp, producer, vestingShares) {
+  await db.none(
+    "INSERT INTO producer_rewards (created_at, producer, vesting_shares) VALUES ($1, $2, $3)",
+    [timestamp, producer, parseFloat(vestingShares)]
+  );
+}
+
+async function addAuthorReward(
+  timestamp,
+  author,
+  permlink,
+  sbdPayout,
+  steemPayout,
+  vestingPayout
+) {
+  await db.none(
+    "INSERT INTO author_rewards (created_at, author, permlink, sbd_payout, steem_payout, vesting_payout) VALUES ($1, $2, $3, $4, $5, $6)",
+    [
+      timestamp,
+      author,
+      permlink,
+      parseFloat(sbdPayout),
+      parseFloat(steemPayout),
+      parseFloat(vestingPayout)
+    ]
+  );
+}
+
+async function addCurationReward(
+  timestamp,
+  curator,
+  reward,
+  commentAuthor,
+  commentPermlink
+) {
+  await db.none(
+    "INSERT INTO curation_rewards (created_at, curator, reward, comment_author, comment_permlink) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
+    [timestamp, curator, parseFloat(reward), commentAuthor, commentPermlink]
+  );
+}
+
 module.exports = {
   addUser,
   addPost,
@@ -114,5 +155,8 @@ module.exports = {
   deletePost,
   addVote,
   addFollow,
-  removeFollow
+  removeFollow,
+  addProducerReward,
+  addAuthorReward,
+  addCurationReward
 };
