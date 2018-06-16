@@ -11,7 +11,10 @@ const {
   deletePost,
   addVote,
   addFollow,
-  removeFollow
+  removeFollow,
+  addProducerReward,
+  addAuthorReward,
+  addCurationReward
 } = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
@@ -76,6 +79,33 @@ async function processBatch(txs) {
             await removeFollow(timestamp, follower, following);
           }
         }
+        break;
+      case "producer_reward":
+        await addProducerReward(
+          timestamp,
+          payload.producer,
+          payload.vesting_shares
+        );
+        break;
+      case "author_reward":
+        await addAuthorReward(
+          timestamp,
+          payload.author,
+          payload.permlink,
+          payload.sbd_payout,
+          payload.steem_payout,
+          payload.vesting_payout
+        );
+        break;
+      case "curation_reward":
+        await addCurationReward(
+          timestamp,
+          payload.curator,
+          payload.reward,
+          payload.comment_author,
+          payload.comment_permlink
+        );
+        break;
     }
   }
 }
