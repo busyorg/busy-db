@@ -65,7 +65,7 @@ async function addComment(
     if (oldComment.body === newBody) return;
 
     await db.none(
-      "UPDATE comments SET updated_at=$1, body=$3 WHERE author=$4 AND permlink=$5",
+      "UPDATE comments SET updated_at=$1, body=$2 WHERE author=$3 AND permlink=$4",
       [timestamp, newBody, author, permlink]
     );
   }
