@@ -6,9 +6,9 @@ CREATE TABLE accounts (
 CREATE TABLE posts (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  parent_author VARCHAR(32),
+  parent_author VARCHAR(16),
   parent_permlink VARCHAR(255),
-  author VARCHAR(32),
+  author VARCHAR(16),
   permlink VARCHAR(255),
   title VARCHAR(255),
   body TEXT,
@@ -18,9 +18,9 @@ CREATE TABLE posts (
 CREATE TABLE votes (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  post_author VARCHAR(32),
+  post_author VARCHAR(16),
   post_permlink VARCHAR(255),
-  voter VARCHAR(32) NOT NULL,
+  voter VARCHAR(16) NOT NULL,
   weight SMALLINT DEFAULT 0,
   CONSTRAINT uc_vote UNIQUE (post_author, post_permlink, voter)
 );
@@ -28,15 +28,15 @@ CREATE TABLE votes (
 CREATE TABLE follows (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  follower VARCHAR(32),
-  followed VARCHAR(32),
+  follower VARCHAR(16),
+  followed VARCHAR(16),
   CONSTRAINT uc_follow UNIQUE (follower, followed)
 );
 
 CREATE TABLE communities (
   account_id DECIMAL NOT NULL,
   type SMALLINT,
-  name VARCHAR(32),
+  name VARCHAR(16),
   about VARCHAR(512),
   description VARCHAR(5000),
   language VARCHAR(10),
@@ -65,4 +65,28 @@ CREATE TABLE modlogs (
   community_id DECIMAL NOT NULL,
   action SMALLINT,
   params VARCHAR(100)
+);
+
+CREATE TABLE producer_rewards (
+  created_at TIMESTAMP,
+  producer VARCHAR(16),
+  vesting_shares DECIMAL(24,6)
+);
+
+CREATE TABLE author_rewards (
+  created_at TIMESTAMP,
+  author VARCHAR(16),
+  permlink VARCHAR(255),
+  sbd_payout DECIMAL(7,3),
+  steem_payout DECIMAL(7,3),
+  vesting_payout DECIMAL(24,6)
+);
+
+CREATE TABLE curation_rewards (
+  created_at TIMESTAMP,
+  curator VARCHAR(16),
+  reward DECIMAL(24,6),
+  comment_author VARCHAR(16),
+  comment_permlink VARCHAR(255),
+  CONSTRAINT uc_curation_reward UNIQUE (curator, comment_author, comment_permlink)
 );
