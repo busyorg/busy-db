@@ -7,8 +7,24 @@ const db = pgp(process.env.BUSYDB_URI || "postgres://localhost:5432/busydb");
 
 async function addUser(timestamp, username) {
   await db.none(
-    "INSERT INTO accounts(created_at, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+    "INSERT INTO accounts(created_at, updated_at, name) VALUES ($1, $1, $2) ON CONFLICT DO NOTHING",
     [timestamp, username]
+  );
+}
+
+async function updateProfile(timestamp, name, profile) {
+  await db.none(
+    "UPDATE SET updated_at=$1, profile_name=$2, profile_about=$3, profile_location=$4, profile_website=$5, profile_avatar=$6, profile_cover=$7 WHERE name=$8",
+    [
+      timestamp,
+      profile.name,
+      profile.about,
+      profile.location,
+      profile.website,
+      profile.profile_image,
+      profile.profile_cover,
+      name
+    ]
   );
 }
 
@@ -128,6 +144,7 @@ async function addCurationReward(
 
 module.exports = {
   addUser,
+  updateProfile,
   addPost,
   deletePost,
   addVote,

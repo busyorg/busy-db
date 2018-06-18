@@ -7,6 +7,7 @@ const api = require("./api");
 const getBatches = require("./getBatches");
 const {
   addUser,
+  updateProfile,
   addPost,
   deletePost,
   addVote,
@@ -46,6 +47,13 @@ async function processBatch(txs) {
       case "account_create":
       case "account_create_with_delegation":
         await addUser(timestamp, payload.new_account_name);
+        break;
+      case "profile_update":
+        updateProfile(
+          timestamp,
+          payload.account,
+          JSON.parse(payload.json_metadata || "{}").profile
+        );
         break;
       case "comment":
         await addPost(
