@@ -1,26 +1,16 @@
-const DiffMatchPatch = require("diff-match-patch");
 const pgp = require("pg-promise")();
-
-const dmp = new DiffMatchPatch();
+const { getNewBody } = require("./utils");
 
 const db = pgp(process.env.BUSYDB_URI || "postgres://localhost:5432/busydb");
 
 async function addUser(timestamp, username) {
   await db.none(
-    "INSERT INTO accounts(created_at, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+    "INSERT INTO accounts (created_at, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
     [timestamp, username]
   );
 }
 
-async function addPost(
-  timestamp,
-  parentAuthor,
-  parentPermlink,
-  author,
-  permlink,
-  title,
-  body
-) {
+async function addPost(timestamp, category, author, permlink, title, body) {
   const oldPost = await db.oneOrNone(
     "SELECT title, body FROM posts WHERE author=$1 AND permlink=$2",
     [author, permlink]
@@ -28,31 +18,55 @@ async function addPost(
 
   if (!oldPost) {
     await db.none(
-      "INSERT INTO posts(created_at, updated_at, parent_author, parent_permlink, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6, $7)",
-      [timestamp, parentAuthor, parentPermlink, author, permlink, title, body]
+      "INSERT INTO posts (created_at, updated_at, category, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      [timestamp, category, author, permlink, title, body]
     );
 
     return;
   }
 
   if (oldPost) {
-    let isPatch = false;
-    let patch = null;
-
-    try {
-      patch = dmp.patch_fromText(body);
-      isPatch = patch.length !== 0;
-    } catch (err) {
-      isPatch = false;
-    }
-
-    const newBody = isPatch ? dmp.patch_apply(patch, oldPost.body)[0] : body;
+    const newBody = getNewBody(oldPost.body, body);
 
     if (oldPost.title === title && oldPost.body === newBody) return;
 
     await db.none(
       "UPDATE posts SET updated_at=$1, title=$2, body=$3 WHERE author=$4 AND permlink=$5",
       [timestamp, title, newBody, author, permlink]
+    );
+  }
+}
+
+async function addComment(
+  timestamp,
+  parentAuthor,
+  parentPermlink,
+  author,
+  permlink,
+  body
+) {
+  const oldComment = await db.oneOrNone(
+    "SELECT body FROM comments WHERE author=$1 AND permlink=$2",
+    [author, permlink]
+  );
+
+  if (!oldComment) {
+    await db.none(
+      "INSERT INTO comments (created_at, updated_at, parent_author, parent_permlink, author, permlink, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      [timestamp, parentAuthor, parentPermlink, author, permlink, body]
+    );
+
+    return;
+  }
+
+  if (oldComment) {
+    const newBody = getNewBody(oldComment.body, body);
+
+    if (oldComment.body === newBody) return;
+
+    await db.none(
+      "UPDATE comments SET updated_at=$1, body=$2 WHERE author=$3 AND permlink=$4",
+      [timestamp, newBody, author, permlink]
     );
   }
 }
@@ -136,6 +150,7 @@ async function addCurationReward(
 module.exports = {
   addUser,
   addPost,
+  addComment,
   deletePost,
   addVote,
   addFollow,
