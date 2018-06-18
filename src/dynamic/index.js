@@ -49,14 +49,14 @@ function processFunds(dp) {
   let contentReward = getContentReward(newDp);
   const curateReward = getCurationReward(newDp);
   const witnessPay = getProducerReward(newDp);
-  const vestingReward = contentReward + curateReward + witnessPay;
+  let vestingReward = contentReward + curateReward + witnessPay;
 
   contentReward = contentReward + curateReward;
 
   if (newDp.headBlockNumber < constants.START_VESTING_BLOCK) {
-    vestingReward.amount = 0;
+    vestingReward = 0;
   } else {
-    vestingReward.amount *= 9;
+    vestingReward *= 9;
   }
 
   newDp.virtualSupply += contentReward + witnessPay + vestingReward;

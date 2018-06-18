@@ -10,7 +10,22 @@ describe("processFunds", () => {
     const actual = processFunds(dp);
     const expected = {
       headBlockNumber: 1,
-      virtualSupply: 250000006000
+      virtualSupply: 250000003000
+    };
+
+    expect(actual).toEqual(expected);
+  });
+
+  it("should calculate virtual supply after VESTING_BLOCK", () => {
+    const dp = {
+      headBlockNumber: 7000000,
+      virtualSupply: 250000000000
+    };
+
+    const actual = processFunds(dp);
+    const expected = {
+      headBlockNumber: 7000000,
+      virtualSupply: 250000030000
     };
 
     expect(actual).toEqual(expected);
