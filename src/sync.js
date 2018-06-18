@@ -5,18 +5,7 @@ const os = require("os");
 const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
-const {
-  addUser,
-  addPost,
-  addComment,
-  deletePost,
-  addVote,
-  addFollow,
-  removeFollow,
-  addProducerReward,
-  addAuthorReward,
-  addCurationReward
-} = require("./db");
+const db = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -34,92 +23,112 @@ async function getBatch(batch) {
 }
 
 async function processBatch(txs) {
+  const arrQueries = [];
+
   for (let tx of txs) {
     const [type, payload] = tx.op;
     const { timestamp } = tx;
 
     switch (type) {
       case "pow":
-        await addUser(timestamp, payload.worker_account);
+        arrQueries.push(db.addUser(timestamp, payload.worker_account));
         break;
       case "pow2":
-        await addUser(timestamp, payload.work[1].input.worker_account);
+        arrQueries.push(
+          db.addUser(timestamp, payload.work[1].input.worker_account)
+        );
         break;
       case "account_create":
       case "account_create_with_delegation":
-        await addUser(timestamp, payload.new_account_name);
+        arrQueries.push(db.addUser(timestamp, payload.new_account_name));
         break;
       case "comment":
         if (!payload.parent_author) {
-          await addPost(
-            timestamp,
-            payload.parent_permlink,
-            payload.author,
-            payload.permlink,
-            payload.title,
-            payload.body
+          arrQueries.push(
+            await db.addPost(
+              timestamp,
+              payload.parent_permlink,
+              payload.author,
+              payload.permlink,
+              payload.title,
+              payload.body
+            )
           );
         } else {
-          await addComment(
-            timestamp,
-            payload.parent_author,
-            payload.parent_permlink,
-            payload.author,
-            payload.permlink,
-            payload.body
+          arrQueries.push(
+            await db.addComment(
+              timestamp,
+              payload.parent_author,
+              payload.parent_permlink,
+              payload.author,
+              payload.permlink,
+              payload.body
+            )
           );
         }
         break;
       case "vote":
-        await addVote(
-          timestamp,
-          payload.voter,
-          payload.author,
-          payload.permlink,
-          payload.weight
+        arrQueries.push(
+          db.addVote(
+            timestamp,
+            payload.voter,
+            payload.author,
+            payload.permlink,
+            payload.weight
+          )
         );
         break;
       case "delete_comment":
-        await deletePost(timestamp, payload.author, payload.permlink);
+        arrQueries.push(
+          db.deletePost(timestamp, payload.author, payload.permlink)
+        );
         break;
       case "custom_json":
         if (payload.id === "follow") {
           const { follower, following, what } = JSON.parse(payload.json);
           if (what.includes("blog")) {
-            await addFollow(timestamp, follower, following);
+            arrQueries.push(db.addFollow(timestamp, follower, following));
           } else if (what.includes("ignore") || what.length === 0) {
-            await removeFollow(timestamp, follower, following);
+            arrQueries.push(db.removeFollow(timestamp, follower, following));
           }
         }
         break;
       case "producer_reward":
-        await addProducerReward(
-          timestamp,
-          payload.producer,
-          payload.vesting_shares
+        arrQueries.push(
+          db.addProducerReward(
+            timestamp,
+            payload.producer,
+            payload.vesting_shares
+          )
         );
         break;
       case "author_reward":
-        await addAuthorReward(
-          timestamp,
-          payload.author,
-          payload.permlink,
-          payload.sbd_payout,
-          payload.steem_payout,
-          payload.vesting_payout
+        arrQueries.push(
+          db.addAuthorReward(
+            timestamp,
+            payload.author,
+            payload.permlink,
+            payload.sbd_payout,
+            payload.steem_payout,
+            payload.vesting_payout
+          )
         );
         break;
       case "curation_reward":
-        await addCurationReward(
-          timestamp,
-          payload.curator,
-          payload.reward,
-          payload.comment_author,
-          payload.comment_permlink
+        arrQueries.push(
+          db.addCurationReward(
+            timestamp,
+            payload.curator,
+            payload.reward,
+            payload.comment_author,
+            payload.comment_permlink
+          )
         );
         break;
     }
   }
+
+  await db.tx(arrQueries);
 }
 
 async function syncOffline(head) {
