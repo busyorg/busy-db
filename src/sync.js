@@ -86,35 +86,47 @@ async function processBatch(txs) {
       case "custom_json":
         if (payload.id === "follow") {
           const json = JSON.parse(payload.json);
-          switch (json[0]) {
-            case "follow":
-              await handleFollow(
-                timestamp,
-                json[1].follower,
-                json[1].following,
-                json[1].what
-              );
-              break;
-            case "reblog":
-              await addReblog(
-                timestamp,
-                json[1].account,
-                json[1].author,
-                json[1].permlink
-              );
-              break;
-            default:
-              if (json.follower && json.following && json.what) {
+          if (Array.isArray(json)) {
+            switch (json[0]) {
+              case "follow":
                 await handleFollow(
                   timestamp,
-                  json.follower,
-                  json.following,
-                  json.what
+                  json[1].follower,
+                  json[1].following,
+                  json[1].what
                 );
-              } else {
+                break;
+              case "reblog":
+                await addReblog(
+                  timestamp,
+                  json[1].account,
+                  json[1].author,
+                  json[1].permlink
+                );
+                break;
+              default:
                 console.log("Unhandled custom_json op", payload.json);
                 break;
-              }
+            }
+          } else if (typeof json === "object") {
+            if (json.follower && json.following && json.what) {
+              await handleFollow(
+                timestamp,
+                json.follower,
+                json.following,
+                json.what
+              );
+            } else {
+              console.log(
+                "Unhandled custom_json op with json object",
+                payload.json
+              );
+            }
+          } else {
+            console.log(
+              "Unhandled custom_json op with unknown json format",
+              payload.json
+            );
           }
         }
         break;
