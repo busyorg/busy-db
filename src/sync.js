@@ -20,6 +20,7 @@ const {
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
+const MAX_BATCH = process.env.MAX_BATCH || 50;
 
 async function getBatch(batch) {
   const requests = batch.map(block => ({
@@ -138,7 +139,7 @@ async function syncOffline(head) {
 }
 
 async function syncOnline(head) {
-  const batches = getBatches(1, 22910707);
+  const batches = getBatches(1, 22910707, MAX_BATCH);
 
   const startBatch = head ? head + 1 : 0;
 

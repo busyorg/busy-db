@@ -1,7 +1,6 @@
 const HF_BLOCKS = [2889020];
-const MAX_BATCH = process.env.MAX_BATCH || 50;
 
-function getBatches(startBlock, blockCount, batchSize = MAX_BATCH) {
+function getBatches(startBlock, blockCount, batchSize = 50) {
   const batches = [];
 
   let batch = [];
