@@ -13,6 +13,7 @@ const {
   addVote,
   addFollow,
   removeFollow,
+  addReblog,
   addProducerReward,
   addAuthorReward,
   addCurationReward
@@ -130,11 +131,48 @@ async function processBatch(txs) {
         break;
       case "custom_json":
         if (payload.id === "follow") {
-          const { follower, following, what } = JSON.parse(payload.json);
-          if (what.includes("blog")) {
-            await addFollow(timestamp, follower, following);
-          } else if (what.includes("ignore") || what.length === 0) {
-            await removeFollow(timestamp, follower, following);
+          const json = JSON.parse(payload.json);
+          if (Array.isArray(json)) {
+            switch (json[0]) {
+              case "follow":
+                await handleFollow(
+                  timestamp,
+                  json[1].follower,
+                  json[1].following,
+                  json[1].what
+                );
+                break;
+              case "reblog":
+                await addReblog(
+                  timestamp,
+                  json[1].account,
+                  json[1].author,
+                  json[1].permlink
+                );
+                break;
+              default:
+                console.log("Unhandled custom_json op", payload.json);
+                break;
+            }
+          } else if (typeof json === "object") {
+            if (json.follower && json.following && json.what) {
+              await handleFollow(
+                timestamp,
+                json.follower,
+                json.following,
+                json.what
+              );
+            } else {
+              console.log(
+                "Unhandled custom_json op with json object",
+                payload.json
+              );
+            }
+          } else {
+            console.log(
+              "Unhandled custom_json op with unknown json format",
+              payload.json
+            );
           }
         }
         break;
@@ -164,7 +202,18 @@ async function processBatch(txs) {
           payload.comment_permlink
         );
         break;
+      default:
+        console.log("Unhandled op type", type, JSON.stringify(payload));
+        break;
     }
+  }
+}
+
+async function handleFollow(timestamp, follower, following, what) {
+  if (what.includes("blog")) {
+    await addFollow(timestamp, follower, following);
+  } else if (what.includes("ignore") || what.length === 0) {
+    await removeFollow(timestamp, follower, following);
   }
 }
 

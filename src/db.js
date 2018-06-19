@@ -115,6 +115,13 @@ async function removeFollow(timestamp, follower, followed) {
   ]);
 }
 
+async function addReblog(timestamp, account, author, permlink) {
+  await db.none(
+    "INSERT INTO reblogs (created_at, account, author, permlink) VALUES ($1, $2, $3, $4)",
+    [timestamp, account, author, permlink]
+  );
+}
+
 async function addProducerReward(timestamp, producer, vestingShares) {
   await db.none(
     "INSERT INTO producer_rewards (created_at, producer, vesting_shares) VALUES ($1, $2, $3)",
@@ -164,6 +171,7 @@ module.exports = {
   addVote,
   addFollow,
   removeFollow,
+  addReblog,
   addProducerReward,
   addAuthorReward,
   addCurationReward

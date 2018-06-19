@@ -106,3 +106,10 @@ CREATE TABLE curation_rewards (
   comment_permlink VARCHAR(255),
   CONSTRAINT uc_curation_reward UNIQUE (curator, comment_author, comment_permlink)
 );
+
+CREATE TABLE reblogs (
+  created_at TIMESTAMP,
+  account VARCHAR(16) NOT NULL,
+  author VARCHAR(16),
+  permlink VARCHAR(255)
+);
