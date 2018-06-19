@@ -210,10 +210,10 @@ async function processBatch(txs) {
 }
 
 async function handleFollow(timestamp, follower, following, what) {
-  if (what.includes("blog")) {
-    await addFollow(timestamp, follower, following);
-  } else if (what.includes("ignore") || what.length === 0) {
+  if (what.length === 0) {
     await removeFollow(timestamp, follower, following);
+  } else {
+    await addFollow(timestamp, follower, following, what);
   }
 }
 

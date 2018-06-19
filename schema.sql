@@ -46,6 +46,7 @@ CREATE TABLE follows (
   updated_at TIMESTAMP,
   follower VARCHAR(16),
   followed VARCHAR(16),
+  what JSONB,
   CONSTRAINT uc_follow UNIQUE (follower, followed)
 );
 
