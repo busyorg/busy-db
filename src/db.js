@@ -3,10 +3,26 @@ const { getNewBody } = require("./utils");
 
 const db = pgp(process.env.DATABASE_URL || "postgres://localhost:5432/busydb");
 
-async function addUser(timestamp, username) {
+async function addUser(
+  timestamp,
+  name,
+  metadata,
+  owner,
+  active,
+  posting,
+  memoKey
+) {
   await db.none(
-    "INSERT INTO accounts (created_at, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-    [timestamp, username]
+    "INSERT INTO accounts (created_at, name, metadata, owner, active, posting, memo_key) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
+    [
+      timestamp,
+      name,
+      JSON.stringify(metadata),
+      JSON.stringify(owner),
+      JSON.stringify(active),
+      JSON.stringify(posting),
+      memoKey
+    ]
   );
 }
 
