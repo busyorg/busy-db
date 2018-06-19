@@ -3,24 +3,12 @@ const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
 const chalk = require("chalk");
-const api = require("./api");
-const getBatches = require("./getBatches");
+const { getBatch, getBatches } = require("../helpers/utils");
 const db = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 const MAX_BATCH = process.env.MAX_BATCH || 50;
-
-async function getBatch(batch) {
-  const requests = batch.map(block => ({
-    method: "get_ops_in_block",
-    params: [block]
-  }));
-
-  return await api
-    .sendBatchAsync(requests, null)
-    .reduce((a, b) => [...a, ...b], []);
-}
 
 async function processBatch(txs) {
   for (let tx of txs) {

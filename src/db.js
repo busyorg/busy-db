@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")();
-const { getNewBody } = require("./utils");
+const { getNewBody } = require("../helpers/utils");
 
 const db = pgp(process.env.DATABASE_URL || "postgres://localhost:5432/busydb");
 
