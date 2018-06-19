@@ -1,6 +1,12 @@
 CREATE TABLE accounts (
   created_at TIMESTAMP,
-  name VARCHAR(60) UNIQUE
+  updated_at TIMESTAMP,
+  name VARCHAR(60) UNIQUE,
+  metadata JSONB,
+  owner JSONB,
+  active JSONB,
+  posting JSONB,
+  memo_key VARCHAR(255)
 );
 
 CREATE TABLE posts (

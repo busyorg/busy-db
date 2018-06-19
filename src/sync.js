@@ -39,16 +39,62 @@ async function processBatch(txs) {
     const { timestamp } = tx;
 
     switch (type) {
-      case "pow":
-        await addUser(timestamp, payload.worker_account);
+      case "pow": {
+        const auth = {
+          weight_threshold: 1,
+          account_auths: [],
+          key_auths: [[payload.work.worker, 1]]
+        };
+        await addUser(
+          timestamp,
+          payload.worker_account,
+          {},
+          auth,
+          auth,
+          auth,
+          payload.work.worker
+        );
         break;
-      case "pow2":
-        await addUser(timestamp, payload.work[1].input.worker_account);
+      }
+      case "pow2": {
+        let auth;
+        let memoKey;
+        if (payload.new_owner_key) {
+          auth = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: [[payload.new_owner_key, 1]]
+          };
+          memoKey = payload.new_owner_key;
+        }
+        await addUser(
+          timestamp,
+          payload.work[1].input.worker_account,
+          {},
+          auth,
+          auth,
+          auth,
+          memoKey
+        );
         break;
+      }
       case "account_create":
-      case "account_create_with_delegation":
-        await addUser(timestamp, payload.new_account_name);
+      case "account_create_with_delegation": {
+        let metadata = {};
+        try {
+          metadata = JSON.parse(payload.json_metadata);
+        } catch (e) {} // eslint-disable-line no-empty
+        await addUser(
+          timestamp,
+          payload.new_account_name,
+          metadata,
+          payload.owner,
+          payload.active,
+          payload.posting,
+          payload.memo_key
+        );
         break;
+      }
       case "comment":
         if (!payload.parent_author) {
           await addPost(
