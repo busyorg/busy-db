@@ -5,19 +5,7 @@ const os = require("os");
 const chalk = require("chalk");
 const api = require("./api");
 const getBatches = require("./getBatches");
-const {
-  addUser,
-  addPost,
-  addComment,
-  deletePost,
-  addVote,
-  addFollow,
-  removeFollow,
-  addReblog,
-  addProducerReward,
-  addAuthorReward,
-  addCurationReward
-} = require("./db");
+const db = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
@@ -46,7 +34,7 @@ async function processBatch(txs) {
           account_auths: [],
           key_auths: [[payload.work.worker, 1]]
         };
-        await addUser(
+        await db.addUser(
           timestamp,
           payload.worker_account,
           {},
@@ -68,7 +56,7 @@ async function processBatch(txs) {
           };
           memoKey = payload.new_owner_key;
         }
-        await addUser(
+        await db.addUser(
           timestamp,
           payload.work[1].input.worker_account,
           {},
@@ -85,7 +73,7 @@ async function processBatch(txs) {
         try {
           metadata = JSON.parse(payload.json_metadata);
         } catch (e) {} // eslint-disable-line no-empty
-        await addUser(
+        await db.addUser(
           timestamp,
           payload.new_account_name,
           metadata,
@@ -98,7 +86,7 @@ async function processBatch(txs) {
       }
       case "comment":
         if (!payload.parent_author) {
-          await addPost(
+          await db.addPost(
             timestamp,
             payload.parent_permlink,
             payload.author,
@@ -107,7 +95,7 @@ async function processBatch(txs) {
             payload.body
           );
         } else {
-          await addComment(
+          await db.addComment(
             timestamp,
             payload.parent_author,
             payload.parent_permlink,
@@ -118,7 +106,7 @@ async function processBatch(txs) {
         }
         break;
       case "vote":
-        await addVote(
+        await db.addVote(
           timestamp,
           payload.voter,
           payload.author,
@@ -127,7 +115,7 @@ async function processBatch(txs) {
         );
         break;
       case "delete_comment":
-        await deletePost(timestamp, payload.author, payload.permlink);
+        await db.deletePost(timestamp, payload.author, payload.permlink);
         break;
       case "custom_json":
         if (payload.id === "follow") {
@@ -143,7 +131,7 @@ async function processBatch(txs) {
                 );
                 break;
               case "reblog":
-                await addReblog(
+                await db.addReblog(
                   timestamp,
                   json[1].account,
                   json[1].author,
@@ -177,14 +165,14 @@ async function processBatch(txs) {
         }
         break;
       case "producer_reward":
-        await addProducerReward(
+        await db.addProducerReward(
           timestamp,
           payload.producer,
           payload.vesting_shares
         );
         break;
       case "author_reward":
-        await addAuthorReward(
+        await db.addAuthorReward(
           timestamp,
           payload.author,
           payload.permlink,
@@ -194,7 +182,7 @@ async function processBatch(txs) {
         );
         break;
       case "curation_reward":
-        await addCurationReward(
+        await db.addCurationReward(
           timestamp,
           payload.curator,
           payload.reward,
@@ -211,9 +199,9 @@ async function processBatch(txs) {
 
 async function handleFollow(timestamp, follower, following, what) {
   if (what.length === 0) {
-    await removeFollow(timestamp, follower, following);
+    await db.removeFollow(timestamp, follower, following);
   } else {
-    await addFollow(timestamp, follower, following, what);
+    await db.addFollow(timestamp, follower, following, what);
   }
 }
 
