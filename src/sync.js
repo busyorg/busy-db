@@ -23,17 +23,33 @@ const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 const MAX_BATCH = process.env.MAX_BATCH || 50;
 
 async function getBatch(batch) {
-  const requests = batch.map(block => ({
+  const headerRequests = batch.map(block => ({
+    method: "get_block_header",
+    params: [block]
+  }));
+  const txRequests = batch.map(block => ({
     method: "get_ops_in_block",
     params: [block]
   }));
 
-  return await api
-    .sendBatchAsync(requests, null)
-    .reduce((a, b) => [...a, ...b], []);
+  const [headers, transactons] = await Promise.all([
+    api.sendBatchAsync(headerRequests, null),
+    api.sendBatchAsync(txRequests, null)
+  ]);
+
+  const batchData = [];
+
+  for (let i = 0; i < batch.length; i++) {
+    batchData.push({
+      header: headers[i],
+      transactons: transactons[i]
+    });
+  }
+
+  return batchData;
 }
 
-async function processBatch(txs) {
+async function processBlock(header, txs) {
   for (let tx of txs) {
     const [type, payload] = tx.op;
     const { timestamp } = tx;
@@ -165,6 +181,12 @@ async function processBatch(txs) {
         );
         break;
     }
+  }
+}
+
+async function processBatch(batch) {
+  for (let block of batch) {
+    await processBlock(block.header, block.transactons);
   }
 }
 
