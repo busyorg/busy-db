@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")();
-const { getNewBody } = require("./utils");
+const { getNewBody } = require("../helpers/utils");
 
 const db = pgp(process.env.DATABASE_URL || "postgres://localhost:5432/busydb");
 
@@ -101,10 +101,10 @@ async function addVote(timestamp, voter, author, permlink, weight) {
   );
 }
 
-async function addFollow(timestamp, follower, followed) {
+async function addFollow(timestamp, follower, followed, what) {
   await db.none(
-    "INSERT INTO follows (created_at, updated_at, follower, followed) VALUES ($1, $1, $2, $3) ON CONFLICT DO NOTHING",
-    [timestamp, follower, followed]
+    "INSERT INTO follows (created_at, updated_at, follower, followed, what) VALUES ($1, $1, $2, $3, $4) ON CONFLICT DO NOTHING",
+    [timestamp, follower, followed, JSON.stringify(what)]
   );
 }
 
