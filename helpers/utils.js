@@ -1,3 +1,4 @@
+const Promise = require("bluebird");
 const DiffMatchPatch = require("diff-match-patch");
 const api = require("./api");
 
@@ -19,14 +20,30 @@ function getNewBody(oldBody, body) {
 }
 
 async function getBatch(batch) {
-  const requests = batch.map(block => ({
+  const headerRequests = batch.map(block => ({
+    method: "get_block_header",
+    params: [block]
+  }));
+  const txRequests = batch.map(block => ({
     method: "get_ops_in_block",
     params: [block]
   }));
 
-  return await api
-    .sendBatchAsync(requests, null)
-    .reduce((a, b) => [...a, ...b], []);
+  const [headers, transactons] = await Promise.all([
+    api.sendBatchAsync(headerRequests, null),
+    api.sendBatchAsync(txRequests, null)
+  ]);
+
+  const batchData = [];
+
+  for (let i = 0; i < batch.length; i++) {
+    batchData.push({
+      header: headers[i],
+      transactons: transactons[i]
+    });
+  }
+
+  return batchData;
 }
 
 function getBatches(startBlock, blockCount, batchSize = 50) {
