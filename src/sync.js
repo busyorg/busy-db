@@ -127,7 +127,7 @@ async function processBlock(header, txs) {
                 );
                 break;
               default:
-                console.log("Unhandled custom_json op", payload.json);
+                console.log("Unhandled custom_json follow op", payload.json);
                 break;
             }
           } else if (typeof json === "object") {
@@ -140,16 +140,18 @@ async function processBlock(header, txs) {
               );
             } else {
               console.log(
-                "Unhandled custom_json op with json object",
+                "Unhandled custom_json follow op with json object",
                 payload.json
               );
             }
           } else {
             console.log(
-              "Unhandled custom_json op with unknown json format",
+              "Unhandled custom_json follow op with unknown json format",
               payload.json
             );
           }
+        } else {
+          console.log("Unhandled custom_json op", payload);
         }
         break;
       case "producer_reward":
@@ -176,6 +178,57 @@ async function processBlock(header, txs) {
           payload.reward,
           payload.comment_author,
           payload.comment_permlink
+        );
+        break;
+      case "transfer":
+        await db.addTransfer(
+          timestamp,
+          payload.from,
+          payload.to,
+          payload.amount,
+          payload.memo,
+        );
+        break;
+      case "transfer_to_vesting":
+        await db.addTransferToVesting(payload.from, payload.to, payload.amount);
+        break;
+      case "fill_vesting_withdraw":
+        /* TODO {"from_account":"parachnen","to_account":"tard","withdrawn":"160.145659 VESTS","deposited":"0.078 STEEM"} */
+        break;
+      case "withdraw_vesting":
+        /* TODO {"account":"steemit","vesting_shares":"260000.000000 VESTS"} */
+        break;
+      case "limit_order_create":
+        /* TODO {"owner":"happychau123","orderid":120364126,"amount_to_sell":"226.222 SBD","min_to_receive":"196.714 STEEM","fill_or_kill":false,"expiration":"1903-08-13T16:38:24"} */
+        break;
+      case "fill_order":
+        /* TODO {"current_owner":"happychau123","current_orderid":120364126,"current_pays":"226.222 SBD","open_owner":"olorin","open_orderid":1524697587,"open_pays":"196.714 STEEM"} */
+        break;
+      case "claim_reward_balance":
+        await db.addClaimRewardBalance(
+          payload.account,
+          payload.reward_steem,
+          payload.reward_sbd,
+          payload.reward_vests
+        );
+        break;
+      case "account_update":
+        /* TODO {"account":"kobbari","posting":{"weight_threshold":1,"account_auths":[["dtube.app",1],["steem.app",1]],"key_auths":[["STM6chQJpEBLz416QLyQiHJ8K4GsktMFcHgD78LxdjnL29TEQGi5P",1]]},"memo_key":"STM7Yua1RSBymhxkFA6MYzZTMgJFThrAyerWBbBAyXiVRxP6S7u3i","json_metadata":""}] */
+        break;
+      case "account_witness_vote":
+        /* TODO {"account":"donalddrumpf","witness":"berniesanders","approve":true} */
+        break;
+      case "delegate_vesting_shares":
+        await db.addDelegateVestingShares(
+          payload.delegator,
+          payload.delegatee,
+          payload.vesting_shares
+        );
+        break;
+      case "return_vesting_delegation":
+        await db.handleReturnVestingDelegation(
+          payload.account,
+          payload.vesting_shares
         );
         break;
       default:

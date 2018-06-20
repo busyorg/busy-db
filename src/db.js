@@ -127,6 +127,10 @@ async function addProducerReward(timestamp, producer, vestingShares) {
     "INSERT INTO producer_rewards (created_at, producer, vesting_shares) VALUES ($1, $2, $3)",
     [timestamp, producer, parseFloat(vestingShares)]
   );
+  await db.none(
+    "UPDATE accounts SET vesting_shares = vesting_shares + $1 WHERE name=$2",
+    [parseFloat(vestingShares), producer]
+  );
 }
 
 async function addAuthorReward(
@@ -148,6 +152,15 @@ async function addAuthorReward(
       parseFloat(vestingPayout)
     ]
   );
+  await db.none(
+    "UPDATE accounts SET balance = balance + $1, sbd_balance = sbd_balance + $2, vesting_shares = vesting_shares + $3 WHERE name=$4",
+    [
+      parseFloat(steemPayout),
+      parseFloat(sbdPayout),
+      parseFloat(vestingPayout),
+      author
+    ]
+  );
 }
 
 async function addCurationReward(
@@ -161,6 +174,71 @@ async function addCurationReward(
     "INSERT INTO curation_rewards (created_at, curator, reward, comment_author, comment_permlink) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING",
     [timestamp, curator, parseFloat(reward), commentAuthor, commentPermlink]
   );
+  await db.none(
+    "UPDATE accounts SET vesting_shares = vesting_shares + $1 WHERE name=$2",
+    [parseFloat(reward), curator]
+  );
+}
+
+async function addTransfer(timestamp, from, to, amount, memo) {
+  const asset = amount.split(" ")[1];
+  await db.none(
+    "INSERT INTO transfers (created_at, transfer_from, transfer_to, amount, asset, memo) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+    [timestamp, from, to, parseFloat(amount), asset, memo]
+  );
+  const steemAmount = asset === "STEEM" ? parseFloat(amount) : 0;
+  const sbdAmount = asset === "SBD" ? parseFloat(amount) : 0;
+  await db.none(
+    "UPDATE accounts SET balance = balance - $1, sbd_balance = sbd_balance - $2 WHERE name=$3",
+    [steemAmount, sbdAmount, from]
+  );
+  await db.none(
+    "UPDATE accounts SET balance = balance + $1, sbd_balance = sbd_balance + $2 WHERE name=$3",
+    [steemAmount, sbdAmount, to]
+  );
+}
+
+async function addClaimRewardBalance(
+  account,
+  rewardSteem,
+  rewardSbd,
+  rewardVests
+) {
+  await db.none(
+    "UPDATE accounts SET balance = balance + $1, sbd_balance = sbd_balance + $2, vesting_shares = vesting_shares + $3 WHERE name=$4",
+    [
+      parseFloat(rewardSteem),
+      parseFloat(rewardSbd),
+      parseFloat(rewardVests),
+      account
+    ]
+  );
+}
+
+async function addDelegateVestingShares(delegator, delegatee, vestingShares) {
+  await db.none(
+    "UPDATE accounts SET delegated_vesting_shares = delegated_vesting_shares + $1 WHERE name=$2",
+    [parseFloat(vestingShares), delegator]
+  );
+  await db.none(
+    "UPDATE accounts SET received_vesting_shares = received_vesting_shares + $1 WHERE name=$2",
+    [parseFloat(vestingShares), delegatee]
+  );
+}
+
+async function handleReturnVestingDelegation(account, vestingShares) {
+  await db.none(
+    "UPDATE accounts SET delegated_vesting_shares = delegated_vesting_shares - $1 WHERE name=$2",
+    [parseFloat(vestingShares), account]
+  );
+}
+
+async function addTransferToVesting(from, to, amount) {
+  await db.none("UPDATE accounts SET balance = balance - $1 WHERE name=$2", [
+    parseFloat(amount),
+    to || from
+  ]);
+  /* TODO: calculate VEST amount from STEEM and increment account vesting_shares */
 }
 
 module.exports = {
@@ -174,5 +252,10 @@ module.exports = {
   addReblog,
   addProducerReward,
   addAuthorReward,
-  addCurationReward
+  addCurationReward,
+  addTransfer,
+  addClaimRewardBalance,
+  addDelegateVestingShares,
+  handleReturnVestingDelegation,
+  addTransferToVesting
 };
