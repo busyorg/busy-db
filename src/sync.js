@@ -215,6 +215,12 @@ async function processBlock(header, txs) {
       case "account_update":
         /* TODO {"account":"kobbari","posting":{"weight_threshold":1,"account_auths":[["dtube.app",1],["steem.app",1]],"key_auths":[["STM6chQJpEBLz416QLyQiHJ8K4GsktMFcHgD78LxdjnL29TEQGi5P",1]]},"memo_key":"STM7Yua1RSBymhxkFA6MYzZTMgJFThrAyerWBbBAyXiVRxP6S7u3i","json_metadata":""}] */
         break;
+      case "account_witness_proxy":
+        /* TODO {"account":"bunkermining","proxy":"datasecuritynode"} */
+        break;
+      case "feed_publish":
+        /* TODO {"publisher":"abit","exchange_rate":{"base":"1.000 SBD","quote":"1000.000 STEEM"}} */
+        break;
       case "account_witness_vote":
         /* TODO {"account":"donalddrumpf","witness":"berniesanders","approve":true} */
         break;
