@@ -10,7 +10,7 @@ const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 const MAX_BATCH = process.env.MAX_BATCH || 50;
 
-async function processBatch(txs) {
+async function processBlock(header, txs) {
   for (let tx of txs) {
     const [type, payload] = tx.op;
     const { timestamp } = tx;
@@ -182,6 +182,12 @@ async function processBatch(txs) {
         console.log("Unhandled op type", type, JSON.stringify(payload));
         break;
     }
+  }
+}
+
+async function processBatch(batch) {
+  for (let block of batch) {
+    await processBlock(block.header, block.transactons);
   }
 }
 
