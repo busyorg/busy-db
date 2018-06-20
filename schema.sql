@@ -1,18 +1,34 @@
 CREATE TABLE accounts (
   created_at TIMESTAMP,
-  name VARCHAR(60) UNIQUE
+  updated_at TIMESTAMP,
+  name VARCHAR(60) UNIQUE,
+  metadata JSONB,
+  owner JSONB,
+  active JSONB,
+  posting JSONB,
+  memo_key VARCHAR(255)
 );
 
 CREATE TABLE posts (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  parent_author VARCHAR(16),
-  parent_permlink VARCHAR(255),
+  category VARCHAR(255),
   author VARCHAR(16),
   permlink VARCHAR(255),
   title VARCHAR(255),
   body TEXT,
   CONSTRAINT uc_post UNIQUE (author, permlink)
+);
+
+CREATE TABLE comments (
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  parent_author VARCHAR(32),
+  parent_permlink VARCHAR(255),
+  author VARCHAR(32),
+  permlink VARCHAR(255),
+  body TEXT,
+  CONSTRAINT uc_comment UNIQUE (author, permlink)
 );
 
 CREATE TABLE votes (
@@ -30,6 +46,7 @@ CREATE TABLE follows (
   updated_at TIMESTAMP,
   follower VARCHAR(16),
   followed VARCHAR(16),
+  what JSONB,
   CONSTRAINT uc_follow UNIQUE (follower, followed)
 );
 
@@ -70,23 +87,30 @@ CREATE TABLE modlogs (
 CREATE TABLE producer_rewards (
   created_at TIMESTAMP,
   producer VARCHAR(16),
-  vesting_shares DECIMAL(24,6)
+  vesting_shares DECIMAL(50,6)
 );
 
 CREATE TABLE author_rewards (
   created_at TIMESTAMP,
   author VARCHAR(16),
   permlink VARCHAR(255),
-  sbd_payout DECIMAL(7,3),
-  steem_payout DECIMAL(7,3),
-  vesting_payout DECIMAL(24,6)
+  sbd_payout DECIMAL(50,3),
+  steem_payout DECIMAL(50,3),
+  vesting_payout DECIMAL(50,6)
 );
 
 CREATE TABLE curation_rewards (
   created_at TIMESTAMP,
   curator VARCHAR(16),
-  reward DECIMAL(24,6),
+  reward DECIMAL(50,6),
   comment_author VARCHAR(16),
   comment_permlink VARCHAR(255),
   CONSTRAINT uc_curation_reward UNIQUE (curator, comment_author, comment_permlink)
+);
+
+CREATE TABLE reblogs (
+  created_at TIMESTAMP,
+  account VARCHAR(16) NOT NULL,
+  author VARCHAR(16),
+  permlink VARCHAR(255)
 );

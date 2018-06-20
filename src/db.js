@@ -1,26 +1,32 @@
-const DiffMatchPatch = require("diff-match-patch");
 const pgp = require("pg-promise")();
+const { getNewBody } = require("../helpers/utils");
 
-const dmp = new DiffMatchPatch();
+const db = pgp(process.env.DATABASE_URL || "postgres://localhost:5432/busydb");
 
-const db = pgp(process.env.BUSYDB_URI || "postgres://localhost:5432/busydb");
-
-async function addUser(timestamp, username) {
+async function addUser(
+  timestamp,
+  name,
+  metadata,
+  owner,
+  active,
+  posting,
+  memoKey
+) {
   await db.none(
-    "INSERT INTO accounts(created_at, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-    [timestamp, username]
+    "INSERT INTO accounts (created_at, name, metadata, owner, active, posting, memo_key) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
+    [
+      timestamp,
+      name,
+      JSON.stringify(metadata),
+      JSON.stringify(owner),
+      JSON.stringify(active),
+      JSON.stringify(posting),
+      memoKey
+    ]
   );
 }
 
-async function addPost(
-  timestamp,
-  parentAuthor,
-  parentPermlink,
-  author,
-  permlink,
-  title,
-  body
-) {
+async function addPost(timestamp, category, author, permlink, title, body) {
   const oldPost = await db.oneOrNone(
     "SELECT title, body FROM posts WHERE author=$1 AND permlink=$2",
     [author, permlink]
@@ -28,31 +34,55 @@ async function addPost(
 
   if (!oldPost) {
     await db.none(
-      "INSERT INTO posts(created_at, updated_at, parent_author, parent_permlink, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6, $7)",
-      [timestamp, parentAuthor, parentPermlink, author, permlink, title, body]
+      "INSERT INTO posts (created_at, updated_at, category, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      [timestamp, category, author, permlink, title, body]
     );
 
     return;
   }
 
   if (oldPost) {
-    let isPatch = false;
-    let patch = null;
-
-    try {
-      patch = dmp.patch_fromText(body);
-      isPatch = patch.length !== 0;
-    } catch (err) {
-      isPatch = false;
-    }
-
-    const newBody = isPatch ? dmp.patch_apply(patch, oldPost.body)[0] : body;
+    const newBody = getNewBody(oldPost.body, body);
 
     if (oldPost.title === title && oldPost.body === newBody) return;
 
     await db.none(
       "UPDATE posts SET updated_at=$1, title=$2, body=$3 WHERE author=$4 AND permlink=$5",
       [timestamp, title, newBody, author, permlink]
+    );
+  }
+}
+
+async function addComment(
+  timestamp,
+  parentAuthor,
+  parentPermlink,
+  author,
+  permlink,
+  body
+) {
+  const oldComment = await db.oneOrNone(
+    "SELECT body FROM comments WHERE author=$1 AND permlink=$2",
+    [author, permlink]
+  );
+
+  if (!oldComment) {
+    await db.none(
+      "INSERT INTO comments (created_at, updated_at, parent_author, parent_permlink, author, permlink, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
+      [timestamp, parentAuthor, parentPermlink, author, permlink, body]
+    );
+
+    return;
+  }
+
+  if (oldComment) {
+    const newBody = getNewBody(oldComment.body, body);
+
+    if (oldComment.body === newBody) return;
+
+    await db.none(
+      "UPDATE comments SET updated_at=$1, body=$2 WHERE author=$3 AND permlink=$4",
+      [timestamp, newBody, author, permlink]
     );
   }
 }
@@ -71,10 +101,10 @@ async function addVote(timestamp, voter, author, permlink, weight) {
   );
 }
 
-async function addFollow(timestamp, follower, followed) {
+async function addFollow(timestamp, follower, followed, what) {
   await db.none(
-    "INSERT INTO follows (created_at, updated_at, follower, followed) VALUES ($1, $1, $2, $3) ON CONFLICT DO NOTHING",
-    [timestamp, follower, followed]
+    "INSERT INTO follows (created_at, updated_at, follower, followed, what) VALUES ($1, $1, $2, $3, $4) ON CONFLICT DO NOTHING",
+    [timestamp, follower, followed, JSON.stringify(what)]
   );
 }
 
@@ -83,6 +113,13 @@ async function removeFollow(timestamp, follower, followed) {
     follower,
     followed
   ]);
+}
+
+async function addReblog(timestamp, account, author, permlink) {
+  await db.none(
+    "INSERT INTO reblogs (created_at, account, author, permlink) VALUES ($1, $2, $3, $4)",
+    [timestamp, account, author, permlink]
+  );
 }
 
 async function addProducerReward(timestamp, producer, vestingShares) {
@@ -129,10 +166,12 @@ async function addCurationReward(
 module.exports = {
   addUser,
   addPost,
+  addComment,
   deletePost,
   addVote,
   addFollow,
   removeFollow,
+  addReblog,
   addProducerReward,
   addAuthorReward,
   addCurationReward

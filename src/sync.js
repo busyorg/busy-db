@@ -3,63 +3,98 @@ const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
 const chalk = require("chalk");
-const api = require("./api");
-const getBatches = require("./getBatches");
-const {
-  addUser,
-  addPost,
-  deletePost,
-  addVote,
-  addFollow,
-  removeFollow,
-  addProducerReward,
-  addAuthorReward,
-  addCurationReward
-} = require("./db");
+const { getBatch, getBatches } = require("../helpers/utils");
+const db = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
+const MAX_BATCH = process.env.MAX_BATCH || 50;
 
-async function getBatch(batch) {
-  const requests = batch.map(block => ({
-    method: "get_ops_in_block",
-    params: [block]
-  }));
-
-  return await api
-    .sendBatchAsync(requests, null)
-    .reduce((a, b) => [...a, ...b], []);
-}
-
-async function processBatch(txs) {
+async function processBlock(header, txs) {
   for (let tx of txs) {
     const [type, payload] = tx.op;
     const { timestamp } = tx;
 
     switch (type) {
-      case "pow":
-        await addUser(timestamp, payload.worker_account);
-        break;
-      case "pow2":
-        await addUser(timestamp, payload.work[1].input.worker_account);
-        break;
-      case "account_create":
-      case "account_create_with_delegation":
-        await addUser(timestamp, payload.new_account_name);
-        break;
-      case "comment":
-        await addPost(
+      case "pow": {
+        const auth = {
+          weight_threshold: 1,
+          account_auths: [],
+          key_auths: [[payload.work.worker, 1]]
+        };
+        await db.addUser(
           timestamp,
-          payload.parent_author,
-          payload.parent_permlink,
-          payload.author,
-          payload.permlink,
-          payload.title,
-          payload.body
+          payload.worker_account,
+          {},
+          auth,
+          auth,
+          auth,
+          payload.work.worker
         );
         break;
+      }
+      case "pow2": {
+        let auth;
+        let memoKey;
+        if (payload.new_owner_key) {
+          auth = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: [[payload.new_owner_key, 1]]
+          };
+          memoKey = payload.new_owner_key;
+        }
+        await db.addUser(
+          timestamp,
+          payload.work[1].input.worker_account,
+          {},
+          auth,
+          auth,
+          auth,
+          memoKey
+        );
+        break;
+      }
+      case "account_create":
+      case "account_create_with_delegation": {
+        let metadata = {};
+        try {
+          metadata = JSON.parse(payload.json_metadata);
+        } catch (e) {} // eslint-disable-line no-empty
+        await db.addUser(
+          timestamp,
+          payload.new_account_name,
+          metadata,
+          payload.owner,
+          payload.active,
+          payload.posting,
+          payload.memo_key
+        );
+        break;
+      }
+      case "comment":
+        if (!payload.parent_author) {
+          await db.addPost(
+            timestamp,
+            payload.parent_permlink,
+            payload.author,
+            payload.permlink,
+            payload.title,
+            payload.body
+          );
+        } else {
+          await db.addComment(
+            timestamp,
+            payload.parent_author,
+            payload.parent_permlink,
+            payload.author,
+            payload.permlink,
+            payload.body
+          );
+        }
+        break;
       case "vote":
-        await addVote(
+        await db.addVote(
           timestamp,
           payload.voter,
           payload.author,
@@ -68,27 +103,64 @@ async function processBatch(txs) {
         );
         break;
       case "delete_comment":
-        await deletePost(timestamp, payload.author, payload.permlink);
+        await db.deletePost(timestamp, payload.author, payload.permlink);
         break;
       case "custom_json":
         if (payload.id === "follow") {
-          const { follower, following, what } = JSON.parse(payload.json);
-          if (what.includes("blog")) {
-            await addFollow(timestamp, follower, following);
-          } else if (what.includes("ignore") || what.length === 0) {
-            await removeFollow(timestamp, follower, following);
+          const json = JSON.parse(payload.json);
+          if (Array.isArray(json)) {
+            switch (json[0]) {
+              case "follow":
+                await handleFollow(
+                  timestamp,
+                  json[1].follower,
+                  json[1].following,
+                  json[1].what
+                );
+                break;
+              case "reblog":
+                await db.addReblog(
+                  timestamp,
+                  json[1].account,
+                  json[1].author,
+                  json[1].permlink
+                );
+                break;
+              default:
+                console.log("Unhandled custom_json op", payload.json);
+                break;
+            }
+          } else if (typeof json === "object") {
+            if (json.follower && json.following && json.what) {
+              await handleFollow(
+                timestamp,
+                json.follower,
+                json.following,
+                json.what
+              );
+            } else {
+              console.log(
+                "Unhandled custom_json op with json object",
+                payload.json
+              );
+            }
+          } else {
+            console.log(
+              "Unhandled custom_json op with unknown json format",
+              payload.json
+            );
           }
         }
         break;
       case "producer_reward":
-        await addProducerReward(
+        await db.addProducerReward(
           timestamp,
           payload.producer,
           payload.vesting_shares
         );
         break;
       case "author_reward":
-        await addAuthorReward(
+        await db.addAuthorReward(
           timestamp,
           payload.author,
           payload.permlink,
@@ -98,7 +170,7 @@ async function processBatch(txs) {
         );
         break;
       case "curation_reward":
-        await addCurationReward(
+        await db.addCurationReward(
           timestamp,
           payload.curator,
           payload.reward,
@@ -106,7 +178,24 @@ async function processBatch(txs) {
           payload.comment_permlink
         );
         break;
+      default:
+        console.log("Unhandled op type", type, JSON.stringify(payload));
+        break;
     }
+  }
+}
+
+async function processBatch(batch) {
+  for (let block of batch) {
+    await processBlock(block.header, block.transactons);
+  }
+}
+
+async function handleFollow(timestamp, follower, following, what) {
+  if (what.length === 0) {
+    await db.removeFollow(timestamp, follower, following);
+  } else {
+    await db.addFollow(timestamp, follower, following, what);
   }
 }
 
@@ -127,7 +216,7 @@ async function syncOffline(head) {
 }
 
 async function syncOnline(head) {
-  const batches = getBatches(1, 22910707);
+  const batches = getBatches(1, 22910707, MAX_BATCH);
 
   const startBatch = head ? head + 1 : 0;
 
