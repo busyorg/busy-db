@@ -6,7 +6,12 @@ CREATE TABLE accounts (
   owner JSONB,
   active JSONB,
   posting JSONB,
-  memo_key VARCHAR(255)
+  memo_key VARCHAR(255),
+  balance DECIMAL(50,3) DEFAULT 0,
+  sbd_balance DECIMAL(50,3) DEFAULT 0,
+  vesting_shares DECIMAL(50,6) DEFAULT 0,
+  delegated_vesting_shares DECIMAL(50,6) DEFAULT 0,
+  received_vesting_shares DECIMAL(50,6) DEFAULT 0
 );
 
 CREATE TABLE posts (
@@ -17,6 +22,7 @@ CREATE TABLE posts (
   permlink VARCHAR(255),
   title VARCHAR(255),
   body TEXT,
+  metadata JSONB,
   CONSTRAINT uc_post UNIQUE (author, permlink)
 );
 
@@ -113,4 +119,13 @@ CREATE TABLE reblogs (
   account VARCHAR(16) NOT NULL,
   author VARCHAR(16),
   permlink VARCHAR(255)
+);
+
+CREATE TABLE transfers (
+  created_at TIMESTAMP,
+  transfer_from VARCHAR(16),
+  transfer_to VARCHAR(16),
+  amount DECIMAL(50,3),
+  asset VARCHAR(255),
+  memo TEXT
 );

@@ -74,13 +74,18 @@ async function processBlock(header, txs) {
       }
       case "comment":
         if (!payload.parent_author) {
+          let metadata = {};
+          try {
+            metadata = JSON.parse(payload.json_metadata);
+          } catch (e) {} // eslint-disable-line no-empty
           await db.addPost(
             timestamp,
             payload.parent_permlink,
             payload.author,
             payload.permlink,
             payload.title,
-            payload.body
+            payload.body,
+            metadata
           );
         } else {
           await db.addComment(
@@ -127,7 +132,7 @@ async function processBlock(header, txs) {
                 );
                 break;
               default:
-                console.log("Unhandled custom_json op", payload.json);
+                console.log("Unhandled custom_json follow op", payload.json);
                 break;
             }
           } else if (typeof json === "object") {
@@ -140,16 +145,18 @@ async function processBlock(header, txs) {
               );
             } else {
               console.log(
-                "Unhandled custom_json op with json object",
+                "Unhandled custom_json follow op with json object",
                 payload.json
               );
             }
           } else {
             console.log(
-              "Unhandled custom_json op with unknown json format",
+              "Unhandled custom_json follow op with unknown json format",
               payload.json
             );
           }
+        } else {
+          console.log("Unhandled custom_json op", payload);
         }
         break;
       case "producer_reward":
@@ -176,6 +183,79 @@ async function processBlock(header, txs) {
           payload.reward,
           payload.comment_author,
           payload.comment_permlink
+        );
+        break;
+      case "transfer":
+        await db.addTransfer(
+          timestamp,
+          payload.from,
+          payload.to,
+          payload.amount,
+          payload.memo,
+        );
+        break;
+      case "transfer_to_vesting":
+        await db.addTransferToVesting(payload.from, payload.to, payload.amount);
+        break;
+      case "fill_vesting_withdraw":
+        /* TODO {"from_account":"parachnen","to_account":"tard","withdrawn":"160.145659 VESTS","deposited":"0.078 STEEM"} */
+        break;
+      case "withdraw_vesting":
+        /* TODO {"account":"steemit","vesting_shares":"260000.000000 VESTS"} */
+        break;
+      case "limit_order_create":
+        /* TODO {"owner":"happychau123","orderid":120364126,"amount_to_sell":"226.222 SBD","min_to_receive":"196.714 STEEM","fill_or_kill":false,"expiration":"1903-08-13T16:38:24"} */
+        break;
+      case "fill_order":
+        /* TODO {"current_owner":"happychau123","current_orderid":120364126,"current_pays":"226.222 SBD","open_owner":"olorin","open_orderid":1524697587,"open_pays":"196.714 STEEM"} */
+        break;
+      case "claim_reward_balance":
+        await db.addClaimRewardBalance(
+          payload.account,
+          payload.reward_steem,
+          payload.reward_sbd,
+          payload.reward_vests
+        );
+        break;
+      case "account_update": {
+        let metadata = {};
+        try {
+          metadata = JSON.parse(payload.json_metadata);
+        } catch (e) {} // eslint-disable-line no-empty
+        await db.handleAccountUpdate(
+          timestamp,
+          payload.account,
+          metadata,
+          payload.owner,
+          payload.active,
+          payload.posting,
+          payload.memo_key
+        );
+        break;
+      }
+      case "account_witness_proxy":
+        /* TODO {"account":"bunkermining","proxy":"datasecuritynode"} */
+        break;
+      case "feed_publish":
+        /* TODO {"publisher":"abit","exchange_rate":{"base":"1.000 SBD","quote":"1000.000 STEEM"}} */
+        break;
+      case "account_witness_vote":
+        /* TODO {"account":"donalddrumpf","witness":"berniesanders","approve":true} */
+        break;
+      case "witness_update":
+        /* TODO {"owner":"steempty","url":"fmooo/steemd-docker","block_signing_key":"STM8LoQjQqJHvotqBo7HjnqmUbFW9oJ2theyqonzUd9DdJ7YYHsvD","props":{"account_creation_fee":"100.000 STEEM","maximum_block_size":131072,"sbd_interest_rate":1000},"fee":"0.000 STEEM"} */
+        break;
+      case "delegate_vesting_shares":
+        await db.addDelegateVestingShares(
+          payload.delegator,
+          payload.delegatee,
+          payload.vesting_shares
+        );
+        break;
+      case "return_vesting_delegation":
+        await db.handleReturnVestingDelegation(
+          payload.account,
+          payload.vesting_shares
         );
         break;
       default:
