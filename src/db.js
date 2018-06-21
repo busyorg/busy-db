@@ -35,7 +35,7 @@ async function handleAccountUpdate(
   posting,
   memoKey
 ) {
-  let query = "UPDATE SET updated_at=$1, metadata=$2";
+  let query = "UPDATE accounts SET updated_at=$1, metadata=$2";
   query += owner ? ", owner=$3" : "";
   query += active ? ", active=$4" : "";
   query += posting ? ", posting=$5" : "";
