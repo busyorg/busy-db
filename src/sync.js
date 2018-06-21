@@ -242,6 +242,9 @@ async function processBlock(header, txs) {
       case "account_witness_vote":
         /* TODO {"account":"donalddrumpf","witness":"berniesanders","approve":true} */
         break;
+      case "witness_update":
+        /* TODO {"owner":"steempty","url":"fmooo/steemd-docker","block_signing_key":"STM8LoQjQqJHvotqBo7HjnqmUbFW9oJ2theyqonzUd9DdJ7YYHsvD","props":{"account_creation_fee":"100.000 STEEM","maximum_block_size":131072,"sbd_interest_rate":1000},"fee":"0.000 STEEM"} */
+        break;
       case "delegate_vesting_shares":
         await db.addDelegateVestingShares(
           payload.delegator,
