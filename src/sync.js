@@ -74,13 +74,18 @@ async function processBlock(header, txs) {
       }
       case "comment":
         if (!payload.parent_author) {
+          let metadata = {};
+          try {
+            metadata = JSON.parse(payload.json_metadata);
+          } catch (e) {} // eslint-disable-line no-empty
           await db.addPost(
             timestamp,
             payload.parent_permlink,
             payload.author,
             payload.permlink,
             payload.title,
-            payload.body
+            payload.body,
+            metadata
           );
         } else {
           await db.addComment(

@@ -26,16 +26,32 @@ async function addUser(
   );
 }
 
-async function addPost(timestamp, category, author, permlink, title, body) {
+async function addPost(
+  timestamp,
+  category,
+  author,
+  permlink,
+  title,
+  body,
+  metadata
+) {
   const oldPost = await db.oneOrNone(
-    "SELECT title, body FROM posts WHERE author=$1 AND permlink=$2",
+    "SELECT title, body, metadata FROM posts WHERE author=$1 AND permlink=$2",
     [author, permlink]
   );
 
   if (!oldPost) {
     await db.none(
-      "INSERT INTO posts (created_at, updated_at, category, author, permlink, title, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
-      [timestamp, category, author, permlink, title, body]
+      "INSERT INTO posts (created_at, updated_at, category, author, permlink, title, body, metadata) VALUES ($1, $1, $2, $3, $4, $5, $6, $7)",
+      [
+        timestamp,
+        category,
+        author,
+        permlink,
+        title,
+        body,
+        JSON.stringify(metadata)
+      ]
     );
 
     return;
@@ -44,11 +60,17 @@ async function addPost(timestamp, category, author, permlink, title, body) {
   if (oldPost) {
     const newBody = getNewBody(oldPost.body, body);
 
-    if (oldPost.title === title && oldPost.body === newBody) return;
+    if (
+      oldPost.title === title &&
+      oldPost.body === newBody &&
+      oldPost.metadata === metadata
+    ) {
+      return;
+    }
 
     await db.none(
-      "UPDATE posts SET updated_at=$1, title=$2, body=$3 WHERE author=$4 AND permlink=$5",
-      [timestamp, title, newBody, author, permlink]
+      "UPDATE posts SET updated_at=$1, title=$2, body=$3, metadata=$4 WHERE author=$5 AND permlink=$6",
+      [timestamp, title, newBody, JSON.stringify(metadata), author, permlink]
     );
   }
 }
