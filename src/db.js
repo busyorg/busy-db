@@ -26,6 +26,31 @@ async function addUser(
   );
 }
 
+async function handleAccountUpdate(
+  timestamp,
+  account,
+  metadata,
+  owner,
+  active,
+  posting,
+  memoKey
+) {
+  let query = "UPDATE SET updated_at=$1, metadata=$2";
+  query += owner ? ", owner=$3" : "";
+  query += active ? ", active=$4" : "";
+  query += posting ? ", posting=$5" : "";
+  query += ", memo_key=$6 WHERE name=$7";
+  await db.none(query, [
+    timestamp,
+    JSON.stringify(metadata),
+    JSON.stringify(owner),
+    JSON.stringify(active),
+    JSON.stringify(posting),
+    memoKey,
+    account
+  ]);
+}
+
 async function addPost(
   timestamp,
   category,
@@ -279,5 +304,6 @@ module.exports = {
   addClaimRewardBalance,
   addDelegateVestingShares,
   handleReturnVestingDelegation,
-  addTransferToVesting
+  addTransferToVesting,
+  handleAccountUpdate
 };
