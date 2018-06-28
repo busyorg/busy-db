@@ -288,6 +288,21 @@ async function processBlock(header, txs) {
       case "comment_options":
         /* TODO {"author":"testing001","permlink":"testing6","max_accepted_payout":"1000.000 SBD","percent_steem_dollars":42672,"allow_votes":true,"allow_curation_rewards":true,"extensions":[]} */
         break;
+      case "shutdown_witness":
+        /* TODO {"owner":"mining1"} */
+        break;
+      case "transfer_to_savings":
+        /* TODO {"from":"abit","to":"abit","amount":"1.000 SBD","memo":""} */
+        break;
+      case "transfer_from_savings":
+        /* TODO {"from":"abit","request_id":101,"to":"abit","amount":"1.000 SBD","memo":""} */
+        break;
+      case "cancel_transfer_from_savings":
+        /* TODO {"from":"jesta","request_id":1} */
+        break;
+      case "fill_transfer_from_savings":
+        /* TODO {"from":"lafona-miner","to":"lafona-miner","amount":"2085.238 SBD","request_id":1,"memo":""} */
+        break;
       default:
         console.log("Unhandled op type", type, JSON.stringify(payload));
         break;
@@ -344,8 +359,8 @@ async function syncOnline(head) {
       );
       await fs.writeFile(path.resolve(BASE_DIR, "head"), i);
     } catch (err) {
-      console.log(err);
-      await Promise.delay(2000);
+      console.log(JSON.stringify(err));
+      await Promise.delay(1000);
       i--;
     }
   }
