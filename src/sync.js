@@ -3,7 +3,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
 const chalk = require("chalk");
-const { getBatch, getBatches } = require("../helpers/utils");
+const { getBatch, getBatches } = require("./helpers/utils");
 const db = require("./db");
 
 const BASE_DIR = path.resolve(os.homedir(), "busydb");
@@ -191,7 +191,7 @@ async function processBlock(header, txs) {
           payload.from,
           payload.to,
           payload.amount,
-          payload.memo,
+          payload.memo
         );
         break;
       case "transfer_to_vesting":
