@@ -274,11 +274,12 @@ async function processBlock(header, txs) {
 
     for (let vote of votes) {
       // await db.addVote(
-      //   timestamp,
-      //   payload.voter,
-      //   payload.author,
-      //   payload.permlink,
-      //   payload.weight
+      //   vote.time,
+      //   author,
+      //   permlink,
+      //   vote.voter,
+      //   vote.percent,
+      //   vote.rshares
       // );
     }
   }
