@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const sync = require("./sync");
+const sync = require('./sync');
 
 require("yargs").command(
   "sync",
