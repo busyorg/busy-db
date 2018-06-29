@@ -44,6 +44,7 @@ CREATE TABLE votes (
   post_permlink VARCHAR(255),
   voter VARCHAR(16) NOT NULL,
   weight SMALLINT DEFAULT 0,
+  rshares BIGINT DEFAULT 0,
   CONSTRAINT uc_vote UNIQUE (post_author, post_permlink, voter)
 );
 

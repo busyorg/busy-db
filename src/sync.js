@@ -3,14 +3,18 @@ const fs = require("fs-extra");
 const path = require("path");
 const os = require("os");
 const chalk = require("chalk");
-const { getBatch, getBatches } = require("../helpers/utils");
+const { getBatch, getBatches } = require("./helpers/utils");
+const api = require("./helpers/api");
 const db = require("./db");
 
-const BASE_DIR = path.resolve(os.homedir(), "busydb");
+const BASE_DIR =
+  process.env.STORAGE_PATH || path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 const MAX_BATCH = process.env.MAX_BATCH || 50;
 
-async function processBlock(header, txs) {
+async function processBatch(txs) {
+  const votedPosts = new Set();
+
   for (let tx of txs) {
     const [type, payload] = tx.op;
     const { timestamp } = tx;
@@ -99,13 +103,7 @@ async function processBlock(header, txs) {
         }
         break;
       case "vote":
-        await db.addVote(
-          timestamp,
-          payload.voter,
-          payload.author,
-          payload.permlink,
-          payload.weight
-        );
+        votedPosts.add(`${payload.author}/${payload.permlink}`);
         break;
       case "delete_comment":
         await db.deletePost(timestamp, payload.author, payload.permlink);
@@ -191,7 +189,7 @@ async function processBlock(header, txs) {
           payload.from,
           payload.to,
           payload.amount,
-          payload.memo,
+          payload.memo
         );
         break;
       case "transfer_to_vesting":
@@ -263,11 +261,26 @@ async function processBlock(header, txs) {
         break;
     }
   }
-}
 
-async function processBatch(batch) {
-  for (let block of batch) {
-    await processBlock(block.header, block.transactons);
+  for (let votedPost of votedPosts) {
+    const [author, permlink] = votedPost.split("/");
+
+    const votes = await api.callAsync(
+      "get_active_votes",
+      [author, permlink],
+      null
+    );
+
+    for (let vote of votes) {
+      await db.addVote(
+        vote.time,
+        author,
+        permlink,
+        vote.voter,
+        vote.percent,
+        vote.rshares
+      );
+    }
   }
 }
 

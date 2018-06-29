@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")();
-const { getNewBody } = require("../helpers/utils");
+const { getNewBody } = require("./helpers/utils");
 
 const db = pgp(process.env.DATABASE_URL || "postgres://localhost:5432/busydb");
 
@@ -141,10 +141,10 @@ async function deletePost(timestamp, author, permlink) {
   ]);
 }
 
-async function addVote(timestamp, voter, author, permlink, weight) {
+async function addVote(timestamp, author, permlink, voter, weight, rshares) {
   await db.none(
-    "INSERT INTO votes(created_at, updated_at, post_author, post_permlink, voter, weight) VALUES ($1, $1, $2, $3, $4, $5) ON CONFLICT ON CONSTRAINT uc_vote DO UPDATE SET weight=$5",
-    [timestamp, author, permlink, voter, weight]
+    "INSERT INTO votes(created_at, updated_at, post_author, post_permlink, voter, weight, rshares) VALUES ($1, $1, $2, $3, $4, $5, $6) ON CONFLICT ON CONSTRAINT uc_vote DO UPDATE SET weight=$5, rshares = $6",
+    [timestamp, author, permlink, voter, weight, rshares]
   );
 }
 
