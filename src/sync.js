@@ -191,7 +191,7 @@ async function processBatch(txs) {
           payload.from,
           payload.to,
           payload.amount,
-          payload.memo,
+          payload.memo
         );
         break;
       case "transfer_to_vesting":
