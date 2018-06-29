@@ -7,7 +7,8 @@ const { getBatch, getBatches } = require("./helpers/utils");
 const api = require("./helpers/api");
 const db = require("./db");
 
-const BASE_DIR = path.resolve(os.homedir(), "busydb");
+const BASE_DIR =
+  process.env.STORAGE_PATH || path.resolve(os.homedir(), "busydb");
 const CACHE_DIR = path.resolve(BASE_DIR, "cache");
 const MAX_BATCH = process.env.MAX_BATCH || 50;
 
