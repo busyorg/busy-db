@@ -15,8 +15,8 @@
   "scripts": {
     "start": "node src/index.js sync",
     "test": "yarn jest",
-    "lint": "eslint src/**/*.js",
-    "prettier": "prettier src/**/*.js --list-different"
+    "lint": "eslint 'src/**/*.js'",
+    "prettier": "prettier 'src/**/*.js' --list-different"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.3",
