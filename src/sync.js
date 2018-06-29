@@ -270,17 +270,15 @@ async function processBatch(txs) {
       null
     );
 
-    console.log("vote", author, permlink, votes.length);
-
     for (let vote of votes) {
-      // await db.addVote(
-      //   vote.time,
-      //   author,
-      //   permlink,
-      //   vote.voter,
-      //   vote.percent,
-      //   vote.rshares
-      // );
+      await db.addVote(
+        vote.time,
+        author,
+        permlink,
+        vote.voter,
+        vote.percent,
+        vote.rshares
+      );
     }
   }
 }
