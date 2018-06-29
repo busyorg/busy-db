@@ -1,4 +1,4 @@
-const { getBatches } = require("../helpers/utils");
+const { getBatches } = require("../src/helpers/utils");
 
 describe("getBatches", () => {
   it("creates block batches", () => {
