@@ -195,18 +195,6 @@ async function processBatch(txs) {
       case "transfer_to_vesting":
         await db.addTransferToVesting(payload.from, payload.to, payload.amount);
         break;
-      case "fill_vesting_withdraw":
-        /* TODO {"from_account":"parachnen","to_account":"tard","withdrawn":"160.145659 VESTS","deposited":"0.078 STEEM"} */
-        break;
-      case "withdraw_vesting":
-        /* TODO {"account":"steemit","vesting_shares":"260000.000000 VESTS"} */
-        break;
-      case "limit_order_create":
-        /* TODO {"owner":"happychau123","orderid":120364126,"amount_to_sell":"226.222 SBD","min_to_receive":"196.714 STEEM","fill_or_kill":false,"expiration":"1903-08-13T16:38:24"} */
-        break;
-      case "fill_order":
-        /* TODO {"current_owner":"happychau123","current_orderid":120364126,"current_pays":"226.222 SBD","open_owner":"olorin","open_orderid":1524697587,"open_pays":"196.714 STEEM"} */
-        break;
       case "claim_reward_balance":
         await db.addClaimRewardBalance(
           payload.account,
@@ -231,18 +219,6 @@ async function processBatch(txs) {
         );
         break;
       }
-      case "account_witness_proxy":
-        /* TODO {"account":"bunkermining","proxy":"datasecuritynode"} */
-        break;
-      case "feed_publish":
-        /* TODO {"publisher":"abit","exchange_rate":{"base":"1.000 SBD","quote":"1000.000 STEEM"}} */
-        break;
-      case "account_witness_vote":
-        /* TODO {"account":"donalddrumpf","witness":"berniesanders","approve":true} */
-        break;
-      case "witness_update":
-        /* TODO {"owner":"steempty","url":"fmooo/steemd-docker","block_signing_key":"STM8LoQjQqJHvotqBo7HjnqmUbFW9oJ2theyqonzUd9DdJ7YYHsvD","props":{"account_creation_fee":"100.000 STEEM","maximum_block_size":131072,"sbd_interest_rate":1000},"fee":"0.000 STEEM"} */
-        break;
       case "delegate_vesting_shares":
         await db.addDelegateVestingShares(
           payload.delegator,
@@ -255,6 +231,75 @@ async function processBatch(txs) {
           payload.account,
           payload.vesting_shares
         );
+        break;
+      case "fill_vesting_withdraw":
+        /* TODO {"from_account":"parachnen","to_account":"tard","withdrawn":"160.145659 VESTS","deposited":"0.078 STEEM"} */
+        break;
+      case "withdraw_vesting":
+        /* TODO {"account":"steemit","vesting_shares":"260000.000000 VESTS"} */
+        break;
+      case "limit_order_create":
+        /* TODO {"owner":"happychau123","orderid":120364126,"amount_to_sell":"226.222 SBD","min_to_receive":"196.714 STEEM","fill_or_kill":false,"expiration":"1903-08-13T16:38:24"} */
+        break;
+      case "fill_order":
+        /* TODO {"current_owner":"happychau123","current_orderid":120364126,"current_pays":"226.222 SBD","open_owner":"olorin","open_orderid":1524697587,"open_pays":"196.714 STEEM"} */
+        break;
+      case "account_witness_proxy":
+        /* TODO {"account":"bunkermining","proxy":"datasecuritynode"} */
+        break;
+      case "feed_publish":
+        /* TODO {"publisher":"abit","exchange_rate":{"base":"1.000 SBD","quote":"1000.000 STEEM"}} */
+        break;
+      case "account_witness_vote":
+        /* TODO {"account":"donalddrumpf","witness":"berniesanders","approve":true} */
+        break;
+      case "witness_update":
+        /* TODO {"owner":"steempty","url":"fmooo/steemd-docker","block_signing_key":"STM8LoQjQqJHvotqBo7HjnqmUbFW9oJ2theyqonzUd9DdJ7YYHsvD","props":{"account_creation_fee":"100.000 STEEM","maximum_block_size":131072,"sbd_interest_rate":1000},"fee":"0.000 STEEM"} */
+        break;
+      case "limit_order_cancel":
+        /* TODO {"owner":"linouxis9","orderid":10} */
+        break;
+      case "set_withdraw_vesting_route":
+        /* TODO {"from_account":"newyo6","to_account":"newyo","percent":10000,"auto_vest":true} */
+        break;
+      case "interest":
+        /* TODO {"owner":"hisnameisolllie","interest":"0.001 SBD"} */
+        break;
+      case "convert":
+        /* TODO {"owner":"summon","requestid":1467592156,"amount":"5.000 SBD"} */
+        break;
+      case "liquidity_reward":
+        /* TODO {"owner":"adm","payout":"1200.000 STEEM"} */
+        break;
+      case "fill_convert_request":
+        /* TODO {"owner":"ikigai","requestid":1467598067,"amount_in":"0.100 SBD","amount_out":"0.369 STEEM"} */
+        break;
+      case "request_account_recovery":
+        /* TODO {"recovery_account":"steem","account_to_recover":"gandalf","new_owner_authority":{"weight_threshold":1,"account_auths":[],"key_auths":[["STM6LYxj96zdypHYqgDdD6Nyh2NxerN3P1Mp3ddNm7gci63nfrSuZ",1]]},"extensions":[]} */
+        break;
+      case "recover_account":
+        /* TODO {"account_to_recover":"chitty","new_owner_authority":{"weight_threshold":1,"account_auths":[],"key_auths":[["STM7j3nhkhHTpXqLEvdx2yEGhQeeorTcxSV6WDL2DZGxwUxYGrHvh",1]]},"recent_owner_authority":{"weight_threshold":1,"account_auths":[],"key_auths":[["STM78Xth94gNxp8nmByFV2vNAhg9bsSdviJ6fQXUTFikySLK3uTxC",1]]},"extensions":[]} */
+        break;
+      case "change_recovery_account":
+        /* TODO {"account_to_recover":"barrie","new_recovery_account":"boombastic","extensions":[]} */
+        break;
+      case "comment_options":
+        /* TODO {"author":"testing001","permlink":"testing6","max_accepted_payout":"1000.000 SBD","percent_steem_dollars":42672,"allow_votes":true,"allow_curation_rewards":true,"extensions":[]} */
+        break;
+      case "shutdown_witness":
+        /* TODO {"owner":"mining1"} */
+        break;
+      case "transfer_to_savings":
+        /* TODO {"from":"abit","to":"abit","amount":"1.000 SBD","memo":""} */
+        break;
+      case "transfer_from_savings":
+        /* TODO {"from":"abit","request_id":101,"to":"abit","amount":"1.000 SBD","memo":""} */
+        break;
+      case "cancel_transfer_from_savings":
+        /* TODO {"from":"jesta","request_id":1} */
+        break;
+      case "fill_transfer_from_savings":
+        /* TODO {"from":"lafona-miner","to":"lafona-miner","amount":"2085.238 SBD","request_id":1,"memo":""} */
         break;
       default:
         console.log("Unhandled op type", type, JSON.stringify(payload));
@@ -327,8 +372,8 @@ async function syncOnline(head) {
       );
       await fs.writeFile(path.resolve(BASE_DIR, "head"), i);
     } catch (err) {
-      console.log(err);
-      await Promise.delay(2000);
+      console.log(JSON.stringify(err));
+      await Promise.delay(1000);
       i--;
     }
   }

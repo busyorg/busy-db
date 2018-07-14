@@ -74,7 +74,7 @@ async function addPost(
         author,
         permlink,
         title,
-        body,
+        body.replace(/\u0000/g, ""), // eslint-disable-line no-control-regex
         JSON.stringify(metadata)
       ]
     );
@@ -83,7 +83,7 @@ async function addPost(
   }
 
   if (oldPost) {
-    const newBody = getNewBody(oldPost.body, body);
+    const newBody = getNewBody(oldPost.body, body).replace(/\u0000/g, ""); // eslint-disable-line no-control-regex
 
     if (
       oldPost.title === title &&
@@ -116,14 +116,21 @@ async function addComment(
   if (!oldComment) {
     await db.none(
       "INSERT INTO comments (created_at, updated_at, parent_author, parent_permlink, author, permlink, body) VALUES ($1, $1, $2, $3, $4, $5, $6)",
-      [timestamp, parentAuthor, parentPermlink, author, permlink, body]
+      [
+        timestamp,
+        parentAuthor,
+        parentPermlink,
+        author,
+        permlink,
+        body.replace(/\u0000/g, "") // eslint-disable-line no-control-regex
+      ]
     );
 
     return;
   }
 
   if (oldComment) {
-    const newBody = getNewBody(oldComment.body, body);
+    const newBody = getNewBody(oldComment.body, body).replace(/\u0000/g, ""); // eslint-disable-line no-control-regex
 
     if (oldComment.body === newBody) return;
 
